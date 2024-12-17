@@ -12,6 +12,14 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+    <Folder Include="Middleware\" />
+    <Folder Include="Filters\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ManboShopAPI.Application\ManboShopAPI.Application.csproj" />
+    <ProjectReference Include="..\ManboShopAPI.Domain\ManboShopAPI.Domain.csproj" />
+    <ProjectReference Include="..\ManboShopAPI.Infrastructure\ManboShopAPI.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

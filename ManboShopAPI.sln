@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34902.84
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManboShopAPI", "ManboShopAPI\ManboShopAPI.csproj", "{BD84F95B-9164-4DFD-85D0-4EF84A81BBDC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManboShopAPI", "ManboShopAPI\ManboShopAPI.csproj", "{BD84F95B-9164-4DFD-85D0-4EF84A81BBDC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManboShopAPI.Domain", "ManboShopAPI.Domain\ManboShopAPI.Domain.csproj", "{D343BFB4-6F5B-420B-84B1-EEC05A810963}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManboShopAPI.Application", "ManboShopAPI.Application\ManboShopAPI.Application.csproj", "{439219A1-C1B1-4A56-907B-594013562E37}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManboShopAPI.Infrastructure", "ManboShopAPI.Infrastructure\ManboShopAPI.Infrastructure.csproj", "{9A054E06-0D29-46B3-96F3-46DA4DBD63E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +21,18 @@ Global
 		{BD84F95B-9164-4DFD-85D0-4EF84A81BBDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD84F95B-9164-4DFD-85D0-4EF84A81BBDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD84F95B-9164-4DFD-85D0-4EF84A81BBDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D343BFB4-6F5B-420B-84B1-EEC05A810963}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D343BFB4-6F5B-420B-84B1-EEC05A810963}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D343BFB4-6F5B-420B-84B1-EEC05A810963}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D343BFB4-6F5B-420B-84B1-EEC05A810963}.Release|Any CPU.Build.0 = Release|Any CPU
+		{439219A1-C1B1-4A56-907B-594013562E37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{439219A1-C1B1-4A56-907B-594013562E37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{439219A1-C1B1-4A56-907B-594013562E37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{439219A1-C1B1-4A56-907B-594013562E37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A054E06-0D29-46B3-96F3-46DA4DBD63E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A054E06-0D29-46B3-96F3-46DA4DBD63E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A054E06-0D29-46B3-96F3-46DA4DBD63E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A054E06-0D29-46B3-96F3-46DA4DBD63E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
