@@ -1,8 +1,10 @@
 ﻿
 using ManboShopAPI.Application;
 using ManboShopAPI.Application.Common.Models;
+using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Extensions;
 using ManboShopAPI.Infrastructure;
+using ManboShopAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
@@ -139,6 +141,7 @@ namespace ManboShopAPI
 				app.UseSwaggerUI();
 			}
 			
+			app.ConfigureExceptionHandler();
 			app.UseHttpsRedirection();
 			app.UseCors("CorsPolicy");
 

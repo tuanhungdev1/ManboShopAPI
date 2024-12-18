@@ -1,4 +1,6 @@
-﻿using ManboShopAPI.Infrastructure.Persistence;
+﻿using ManboShopAPI.Domain.Interfaces;
+using ManboShopAPI.Infrastructure.Persistence;
+using ManboShopAPI.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,7 @@ namespace ManboShopAPI.Infrastructure
 			);
 
 			// Đăng Kí Repository
+			services.AddScoped<ICategoryRepository, CategoryRepository>();
 			//services.AddScoped<IUserRepository, UserRepository>();
 			//services.AddScoped<IAddressRepository, AddressRepository>();
 			//services.AddScoped<IProductRepository, ProductRepository>();

@@ -1,4 +1,6 @@
 ﻿using ManboShopAPI.Application.Mappings;
+using ManboShopAPI.Application.Services;
+using ManboShopAPI.Domain.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -15,6 +17,7 @@ namespace ManboShopAPI.Application
 		public static IServiceCollection AddApplicationServices(this IServiceCollection services)
 		{
 			// Đăng ký Services
+			services.AddScoped<ICategoryService, CategoryService>();
 			//services.AddScoped<IUserService, UserService>();
 			//services.AddScoped<IProductService, ProductService>();
 			//services.AddScoped<ICategoryService, CategoryService>();

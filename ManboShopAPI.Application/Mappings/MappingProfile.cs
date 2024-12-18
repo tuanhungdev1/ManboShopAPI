@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ManboShopAPI.Application.DTOs.CategoryDtos;
 using ManboShopAPI.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,14 @@ namespace ManboShopAPI.Application.Mappings
 	{
 		public MappingProfile()
 		{
-			//CreateMap<Category, CategoryDto>();
+
+			// CATEGORY
+			CreateMap<Category, CategoryDto>();
+			CreateMap<CategoryForCreateDto, Category>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			CreateMap<CategoryForUpdateDto, Category>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			//CATEGORY
 		}
 	}
 }
