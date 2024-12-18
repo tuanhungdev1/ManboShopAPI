@@ -47,7 +47,7 @@ namespace ManboShopAPI.Extensions
 			})
 			.AddEntityFrameworkStores<ApplicationDbContext>()
 			.AddDefaultTokenProviders()
-			.AddRoles<IdentityRole>();
+			.AddRoles<IdentityRole<int>>();
 		}
 
 		// Cấu hình JSON Serializer
@@ -64,29 +64,6 @@ namespace ManboShopAPI.Extensions
 		}
 
 
-		public static IServiceCollection AddCustomAutoMapper(
-		this IServiceCollection services)
-		{
-			services.AddAutoMapper(cfg =>
-			{
-				// Tự động tìm và áp dụng các mapping configurations
-				var mappingConfigurations = Assembly.GetExecutingAssembly()
-					.GetTypes()
-					.Where(t => typeof(IMapConfiguration).IsAssignableFrom(t) &&
-								!t.IsInterface &&
-								!t.IsAbstract)
-					.Select(Activator.CreateInstance)
-					.Cast<IMapConfiguration>()
-					.ToList();
-
-				// Áp dụng từng cấu hình mapping
-				foreach (var mappingConfig in mappingConfigurations)
-				{
-					mappingConfig.Configure(cfg);
-				}
-			}, typeof(Program).Assembly);
-
-			return services;
-		}
+		
 	}
 }

@@ -33,9 +33,7 @@ namespace ManboShopAPI
 							.AddApplicationServices()
 							.AddLoggingServices(builder.Configuration);
 
-			//ServicesExtensions
-			builder.Services.ConfigureIdentity();
-			builder.Services.ConfigureIISIntegration();
+			
 
 
 			builder.Services.Configure<IISServerOptions>(options =>
@@ -130,6 +128,9 @@ namespace ManboShopAPI
 			builder.Services.Configure<CloudinarySettings>(
 														builder.Configuration.GetSection("CloudinarySettings")
 														);
+			//ServicesExtensions
+			builder.Services.ConfigureIdentity();
+			builder.Services.ConfigureIISIntegration();
 
 			var app = builder.Build();
 			if (app.Environment.IsDevelopment())
