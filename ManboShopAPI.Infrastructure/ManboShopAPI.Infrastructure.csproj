@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ManboShopAPI.Application\ManboShopAPI.Application.csproj" />
     <ProjectReference Include="..\ManboShopAPI.Domain\ManboShopAPI.Domain.csproj" />
   </ItemGroup>
 

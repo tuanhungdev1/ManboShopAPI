@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ManboShopAPI.Application.Common.Request;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace ManboShopAPI.Application.Common.Response
 		public string Message { get; set; }
 		public T? Data { get; set; }
 		public List<string>? Errors { get; set; }
-		public PaginationMetadata? Pagination { get; set; }
+		public MetaData? Pagination { get; set; }
 	}
 
 }

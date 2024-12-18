@@ -1,6 +1,6 @@
-﻿using ManboShopAPI.Application.Common.Response;
+﻿using ManboShopAPI.Application.Common.Request;
+using ManboShopAPI.Application.Common.Response;
 using ManboShopAPI.Application.DTOs.CategoryDtos;
-using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
@@ -24,15 +24,16 @@ namespace ManboShopAPI.Controllers
 			[HttpGet]
 			[ProducesResponseType(StatusCodes.Status200OK)]
 			[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-			public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
+			public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories([FromQuery] CategoryRequestParameters categoryRequestParameters)
 			{
-				var categories = await _categoryService.GetAllCategoriesAsync();
+				var (categories, metaData) = await _categoryService.GetAllCategoriesAsync(categoryRequestParameters);
 				return Ok(new ApiResponse<object>
 				{
 					StatusCode = 200,
 					Success = true,
 					Message = "Lấy dữ liệu danh sách các danh mục thành công.",
-					Data = categories
+					Data = categories,
+					Pagination = metaData
 				});
 			}
 

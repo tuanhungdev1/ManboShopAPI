@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Application.DTOs.CategoryDtos;
+﻿using ManboShopAPI.Application.Common.Request;
+using ManboShopAPI.Application.DTOs.CategoryDtos;
 using ManboShopAPI.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace ManboShopAPI.Domain.Interfaces
 {
 	public interface ICategoryService
 	{
-		Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync();
+		Task<(IEnumerable<CategoryDto> categories, MetaData metaData)> GetAllCategoriesAsync(CategoryRequestParameters categoryRequestParameters);
 		Task<CategoryDto> GetCategoryByIdAsync(int categoryId);
 		Task CreateCategoryAsync(CategoryForCreateDto categoryForCreateDto);
 		Task UpdateCategoryAsync(int categoryId, CategoryForUpdateDto categoryForUpdateDto);

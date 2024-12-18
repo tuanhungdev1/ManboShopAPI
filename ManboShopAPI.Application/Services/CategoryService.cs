@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.DTOs.CategoryDtos;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
@@ -30,11 +31,12 @@ namespace ManboShopAPI.Application.Services
 			_logger = loggerService;
 		}
 
-		public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
+		public async Task<(IEnumerable<CategoryDto> categories, MetaData metaData)> GetAllCategoriesAsync(CategoryRequestParameters categoryRequestParameters)
 		{
-			var categories = await _categoryRepository.GetAllAsync(true);
+			var categories = await _categoryRepository.FetchAllCategoriesWithPaging(categoryRequestParameters);
 			_logger.LogInfo("Lấy danh sách danh mục thành công.");
-			return _mapper.Map<IEnumerable<CategoryDto>>(categories);
+			var categoryDtoList = _mapper.Map<IEnumerable<CategoryDto>>(categories);
+			return (categoryDtoList, metaData: categories.MetaData);
 		}
 
 		public async Task<CategoryDto> GetCategoryByIdAsync(int categoryId)

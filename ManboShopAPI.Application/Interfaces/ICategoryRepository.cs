@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Domain.Entities;
+﻿using ManboShopAPI.Application.Common.Request;
+using ManboShopAPI.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,8 @@ namespace ManboShopAPI.Domain.Interfaces
 {
 	public interface ICategoryRepository : IRepositoryBase<Category>
 	{
-		Task<Category?> GetCategoryWithProductsAsync(int categoryId);
+		Task<PagedList<Category>> FetchAllCategoriesWithPaging(CategoryRequestParameters categoryRequestParameters);
+		Task<Category> GetCategoryWithProductsAsync(int categoryId);
 		Task<bool> CategoryExistsAsync(string categoryName);
 	}
 }
