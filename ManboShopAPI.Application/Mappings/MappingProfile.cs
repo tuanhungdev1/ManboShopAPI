@@ -35,7 +35,9 @@ namespace ManboShopAPI.Application.Mappings
 
 
 			//PRODUCT
-			CreateMap<Product, ProductDto>();
+			CreateMap<Product, ProductDto>()
+				.ForMember(dest => dest.CategoryName, opt => opt.MapFrom(p => p.Category.Name))
+				.ForMember(dest => dest.BrandName, opt => opt.MapFrom(p => p.Brand.Name));
 			CreateMap<ProductForCreateDto, Product>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			CreateMap<ProductForUpdateDto, Product>()

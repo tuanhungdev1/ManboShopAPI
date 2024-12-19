@@ -20,6 +20,8 @@ namespace ManboShopAPI.Application.DTOs.ProductDtos
 		public int? BrandId { get; set; }
 		public string? CategoryName { get; set; }
 		public string? BrandName { get; set; }
+		public DateTime CreatedAt { get; set; }
+		public DateTime? UpdatedAt { get; set; }
 		public ICollection<string> ImageUrls { get; set; } = new List<string>();
 	}
 }

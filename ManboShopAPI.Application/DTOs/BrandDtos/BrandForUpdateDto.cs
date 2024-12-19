@@ -10,10 +10,10 @@ namespace ManboShopAPI.Application.DTOs.BrandDtos
 {
 	public class BrandForUpdateDto
 	{
-		[Required]
-		[MaxLength(100)]
+		[Required(ErrorMessage = "Tên thương hiệu không được để trống")]
+		[MaxLength(100, ErrorMessage = "Tên thương hiệu không được vượt quá 100 ký tự")]
 		public required string Name { get; set; }
 		public string? ImageUrl { get; set; }
-		//public ICollection<Product> Products { get; set; } = new List<Product>();
+		
 	}
 }

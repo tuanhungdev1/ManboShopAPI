@@ -133,6 +133,7 @@ namespace ManboShopAPI
 			//ServicesExtensions
 			builder.Services.ConfigureIdentity();
 			builder.Services.ConfigureIISIntegration();
+			builder.Services.AddFilterAttribute();
 
 			var app = builder.Build();
 			if (app.Environment.IsDevelopment())

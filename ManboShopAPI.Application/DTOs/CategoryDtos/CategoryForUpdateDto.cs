@@ -9,8 +9,8 @@ namespace ManboShopAPI.Application.DTOs.CategoryDtos
 {
 	public class CategoryForUpdateDto
 	{
-		[Required]
-		[MaxLength(100)]
+		[Required(ErrorMessage = "Tên danh mục không được để trống")]
+		[MaxLength(100, ErrorMessage = "Tên danh mục không được vượt quá 100 ký tự")]
 		public string Name { get; set; }
 		public string? ImageUrl { get; set; }
 	}

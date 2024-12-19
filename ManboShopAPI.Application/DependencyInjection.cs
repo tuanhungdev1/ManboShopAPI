@@ -33,9 +33,6 @@ namespace ManboShopAPI.Application
 			services.AddAutoMapper(Assembly.GetExecutingAssembly());
 			
 			// Đăng ký Validators
-
-			// Đăng ký Filter
-			//services.AddScoped<ValidationFilterAttribute>();
 			services.AddHttpContextAccessor();
 
 			return services;

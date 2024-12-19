@@ -3,6 +3,7 @@ using ManboShopAPI.Application.Common.Response;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.BrandDtos;
 using ManboShopAPI.Domain.Interfaces;
+using ManboShopAPI.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 
@@ -54,6 +55,7 @@ namespace ManboShopAPI.Controllers
 		}
 
 		[HttpPost]
+		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> CreateBrand(
@@ -71,6 +73,7 @@ namespace ManboShopAPI.Controllers
 
 
 		[HttpPut("{id:int}")]
+		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]

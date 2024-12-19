@@ -2,6 +2,7 @@
 using ManboShopAPI.Application.Common.Response;
 using ManboShopAPI.Application.DTOs.CategoryDtos;
 using ManboShopAPI.Domain.Interfaces;
+using ManboShopAPI.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 
@@ -54,7 +55,8 @@ namespace ManboShopAPI.Controllers
 		}
 
 			[HttpPost]
-			[ProducesResponseType(StatusCodes.Status201Created)]
+		[ValidationFilter]
+		[ProducesResponseType(StatusCodes.Status201Created)]
 			[ProducesResponseType(StatusCodes.Status400BadRequest)]
 			public async Task<IActionResult> CreateCategory(
 				[FromBody] CategoryForCreateDto categoryDto)
@@ -71,6 +73,7 @@ namespace ManboShopAPI.Controllers
 
 			
 			[HttpPut("{id:int}")]
+			[ValidationFilter]
 			[ProducesResponseType(StatusCodes.Status204NoContent)]
 			[ProducesResponseType(StatusCodes.Status400BadRequest)]
 			[ProducesResponseType(StatusCodes.Status404NotFound)]

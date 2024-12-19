@@ -9,9 +9,9 @@ namespace ManboShopAPI.Application.DTOs.CategoryDtos
 {
 	public class CategoryForCreateDto
 	{
-		[Required]
-		[MaxLength(100)]
-		public string Name { get; set; }
+		[Required(ErrorMessage = "Tên danh mục không được để trống")]
+		[MaxLength(100, ErrorMessage = "Tên danh mục không được vượt quá 100 ký tự")]
+		public required string Name { get; set; }
 		public string? ImageUrl { get; set; }
 	}
 }

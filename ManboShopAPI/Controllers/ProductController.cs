@@ -1,7 +1,7 @@
 ﻿using ManboShopAPI.Application.Common.Response;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.ProductDtos;
-using ManboShopAPI.Application.Interfaces;
+using ManboShopAPI.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 
@@ -80,6 +80,7 @@ namespace ManboShopAPI.Controllers
 		}
 
 		[HttpPost]
+		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> CreateProduct([FromBody] ProductForCreateDto productDto)
@@ -95,6 +96,7 @@ namespace ManboShopAPI.Controllers
 		}
 
 		[HttpPut("{id:int}")]
+		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -132,15 +134,15 @@ namespace ManboShopAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<IActionResult> UpdateProductQuantity(
 			int id,
-			[FromBody] int quantity)
+			[FromBody] ProductForUpdateQuantityDto productForUpdateQuantityDto)
 		{
-			await _productService.UpdateProductQuantityAsync(id, quantity);
+			await _productService.UpdateProductQuantityAsync(id, productForUpdateQuantityDto.Quantity);
 			return Ok(new ApiResponse<object>
 			{
 				StatusCode = 200,
 				Success = true,
 				Message = $"Cập nhật số lượng sản phẩm với Id {id} thành công.",
-				Data = new { Id = id, Quantity = quantity }
+				Data = new { Id = id, productForUpdateQuantityDto.Quantity }
 			});
 		}
 	}

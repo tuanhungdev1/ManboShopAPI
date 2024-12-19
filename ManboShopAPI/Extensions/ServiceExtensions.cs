@@ -1,5 +1,6 @@
 ﻿using ManboShopAPI.Application.Mappings;
 using ManboShopAPI.Domain.Entities;
+using ManboShopAPI.Filters;
 using ManboShopAPI.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -63,7 +64,11 @@ namespace ManboShopAPI.Extensions
 				});
 		}
 
+		// Filters
+		public static void AddFilterAttribute(this IServiceCollection services)
+		{
+			services.AddScoped<ValidationFilterAttribute>();
+		}
 
-		
 	}
 }

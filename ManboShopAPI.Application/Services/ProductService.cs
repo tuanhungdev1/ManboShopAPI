@@ -6,6 +6,7 @@ using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using ManboShopAPI.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +46,11 @@ namespace ManboShopAPI.Application.Services
 
 		public async Task<ProductDto> GetProductByIdAsync(int id)
 		{
-			var product = await _productRepository.GetByIdAsync(id);
+			var product = await _productRepository
+							.FindByCondition(p => p.Id == id)
+							.Include(p => p.Category)
+							.Include(p => p.Brand)
+							.FirstOrDefaultAsync();
 			if (product == null)
 			{
 				_logger.LogError($"Không tìm thấy sản phẩm với id {id}");
@@ -100,17 +105,27 @@ namespace ManboShopAPI.Application.Services
 			await _productRepository.AddAsync(product);
 			await _productRepository.SaveChangesAsync();
 
+			var newProduct = await _productRepository
+							.FindByCondition(p => p.Id == product.Id)
+							.Include(p => p.Category)
+							.Include(p => p.Brand)
+							.FirstOrDefaultAsync();
+			
 			_logger.LogInfo($"Tạo sản phẩm mới '{product.Name}' thành công.");
 			return _mapper.Map<ProductDto>(product);
 		}
 
 		public async Task<ProductDto> UpdateProductAsync(int productId ,ProductForUpdateDto productDto)
 		{
-			var existingProduct = await _productRepository.GetByIdAsync(productId);
+			var existingProduct = await _productRepository
+							.FindByCondition(p => p.Id == productId)
+							.Include(p => p.Category)
+							.Include(p => p.Brand)
+							.FirstOrDefaultAsync();
 			if (existingProduct == null)
 			{
-				_logger.LogError($"Không tìm thấy sản phẩm với id {productDto.Id}");
-				throw new ProductNotFoundException(productDto.Id);
+				_logger.LogError($"Không tìm thấy sản phẩm với id {productId}");
+				throw new ProductNotFoundException(productId);
 			}
 
 			await ValidateProductData(productDto.CategoryId, productDto.BrandId);
@@ -127,8 +142,14 @@ namespace ManboShopAPI.Application.Services
 			_productRepository.Update(existingProduct);
 			await _productRepository.SaveChangesAsync();
 
+
+			var newProduct = await _productRepository
+							.FindByCondition(p => p.Id == productId)
+							.Include(p => p.Category)
+							.Include(p => p.Brand)
+							.FirstOrDefaultAsync();
 			_logger.LogInfo($"Cập nhật sản phẩm với id {existingProduct.Id} thành công.");
-			return _mapper.Map<ProductDto>(existingProduct);
+			return _mapper.Map<ProductDto>(newProduct);
 		}
 
 		public async Task DeleteProductAsync(int id)
