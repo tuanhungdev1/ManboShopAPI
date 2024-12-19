@@ -17,7 +17,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 		}
 
-		public async Task<Brand> GetBrandWithProductsAsync(int brandId)
+		public async Task<Brand?> GetBrandWithProductsAsync(int brandId)
 		{
 			return await _context.Brands
 				.Include(b => b.Products)
@@ -27,7 +27,13 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		public async Task<bool> BrandExistsAsync(string brandName)
 		{
 			return await _context.Brands
-				.AnyAsync(b => b.Name.ToLower() == brandName.ToLower());
+				.AnyAsync(b => b.Name.Trim().ToLower() == brandName.Trim().ToLower());
+		}
+
+		public async Task<bool> BrandExistsByIdAsync(int brandId)
+		{
+			return await _context.Brands
+				.AnyAsync(b => b.Id == brandId);
 		}
 
 		public async Task<PagedList<Brand>> FetchAllCategoriesWithPaging(BrandRequestParameters brandRequestParameters)

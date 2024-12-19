@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Domain.Interfaces;
+﻿using ManboShopAPI.Application.Interfaces;
+using ManboShopAPI.Domain.Interfaces;
 using ManboShopAPI.Infrastructure.Persistence;
 using ManboShopAPI.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -24,11 +25,11 @@ namespace ManboShopAPI.Infrastructure
 			services.AddScoped<ICategoryRepository, CategoryRepository>();
 			//services.AddScoped<IUserRepository, UserRepository>();
 			//services.AddScoped<IAddressRepository, AddressRepository>();
-			//services.AddScoped<IProductRepository, ProductRepository>();
+			services.AddScoped<IProductRepository, ProductRepository>();
 			//services.AddScoped<IWishlistRepository, WishlistRepository>();
 			//services.AddScoped<ICartRepository, CartRepository>();
 			//services.AddScoped<ICategoryRepository, CategoryRepository>();
-			//services.AddScoped<IBrandRepository, BrandRepository>();
+			services.AddScoped<IBrandRepository, BrandRepository>();
 			//services.AddScoped<ISupplierRepository, SupplierRepository>();
 
 

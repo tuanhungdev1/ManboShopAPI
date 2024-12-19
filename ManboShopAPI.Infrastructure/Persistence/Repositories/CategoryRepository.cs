@@ -14,10 +14,8 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 {
 	public class CategoryRepository : RepositoryBase<Category>, ICategoryRepository
 	{
-		private readonly ApplicationDbContext _context;
 		public CategoryRepository(ApplicationDbContext context) : base(context)
 		{
-			_context = context;
 		}
 
 		public async Task<PagedList<Category>> FetchAllCategoriesWithPaging(CategoryRequestParameters categoryRequestParameters)
@@ -62,7 +60,12 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		
 		public async Task<bool> CategoryExistsAsync(string categoryName)
 		{
-			return await _context.Categories.AnyAsync(c => c.Name == categoryName);
+			return await _context.Categories.AnyAsync(c => c.Name.Trim().ToLower() == categoryName.Trim().ToLower());
+		}
+
+		public async Task<bool> CategoryExistsByIdAsync(int categoryId)
+		{
+			return await _context.Categories.AnyAsync(c => c.Id == categoryId);
 		}
 	}
 }

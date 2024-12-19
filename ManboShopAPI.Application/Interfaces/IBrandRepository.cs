@@ -13,6 +13,7 @@ namespace ManboShopAPI.Application.Interfaces
 	{
 		Task<Brand?> GetBrandWithProductsAsync(int brandId);
 		Task<bool> BrandExistsAsync(string brandName);
+		Task<bool> BrandExistsByIdAsync(int brandId);
 		Task<PagedList<Brand>> FetchAllCategoriesWithPaging(BrandRequestParameters brandRequestParameters);
 	}
 }

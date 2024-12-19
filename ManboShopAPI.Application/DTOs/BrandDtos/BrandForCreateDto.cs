@@ -6,15 +6,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ManboShopAPI.Application.DTOs.CategoryDtos
+namespace ManboShopAPI.Application.DTOs.BrandDtos
 {
-	public class CategoryDto
+	public class BrandForCreateDto
 	{
-        public int Id { get; set; }
-		public string Name { get; set; }
+		[Required]
+		[MaxLength(100)]
+		public required string Name { get; set; }
 		public string? ImageUrl { get; set; }
 		//public ICollection<Product> Products { get; set; } = new List<Product>();
-		public DateTime CreatedAt { get; set; }
-		public DateTime? UpdatedAt { get; set; }
 	}
 }

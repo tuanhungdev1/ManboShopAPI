@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Application.Mappings;
+﻿using ManboShopAPI.Application.Contracts;
+using ManboShopAPI.Application.Mappings;
 using ManboShopAPI.Application.Services;
 using ManboShopAPI.Domain.Interfaces;
 using Microsoft.AspNetCore.Authentication;
@@ -19,11 +20,11 @@ namespace ManboShopAPI.Application
 			// Đăng ký Services
 			services.AddScoped<ICategoryService, CategoryService>();
 			//services.AddScoped<IUserService, UserService>();
-			//services.AddScoped<IProductService, ProductService>();
+			services.AddScoped<IProductService, ProductService>();
 			//services.AddScoped<ICategoryService, CategoryService>();
 			//services.AddScoped<IAuthenticationService, AuthenticationService>();
 			//services.AddScoped<ICloudinaryService, CloudinaryService>();
-			//services.AddScoped<IBrandService, BrandService>();
+			services.AddScoped<IBrandService, BrandService>();
 			//services.AddScoped<ISupplierService, SupplierService>();
 			//services.AddScoped<IWishlistService, WishlistService>();
 

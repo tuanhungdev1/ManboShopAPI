@@ -25,15 +25,20 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 		public async Task<IEnumerable<T>> GetAllAsync(bool asNoTracking = false)
 		{
-			return asNoTracking
+			return !asNoTracking
 				? await _dbSet.ToListAsync()
 				: await _dbSet.AsNoTracking().ToListAsync();
 		}
 
-		public async Task<T?> GetByIdAsync(int id)
+		public async Task<T?> GetByIdAsync(int id, bool asNoTracking = false)
 		{
+			if (asNoTracking)
+			{
+				return await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
+			}
 			return await _dbSet.FindAsync(id);
 		}
+
 
 		public IQueryable<T> FindAll(bool asNoTracking = false) =>
 			asNoTracking ?
