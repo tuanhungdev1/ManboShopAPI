@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Application.Common.Response;
+﻿using ManboShopAPI.Application.Common.Request;
+using ManboShopAPI.Application.Common.Response;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Filters;
@@ -22,15 +23,16 @@ namespace ManboShopAPI.Controllers
 		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
+		public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts([FromQuery] ProductRequestParameters productRequestParameters)
 		{
-			var products = await _productService.GetAllProductsAsync();
+			var productsResult = await _productService.GetAllProductsAsync(productRequestParameters);
 			return Ok(new ApiResponse<object>
 			{
 				StatusCode = 200,
 				Success = true,
 				Message = "Lấy danh sách sản phẩm thành công.",
-				Data = products
+				Data = productsResult.products,
+				Pagination = productsResult.metaData
 			});
 		}
 

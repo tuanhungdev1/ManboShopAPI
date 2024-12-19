@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Application.DTOs.ProductDtos;
+﻿using ManboShopAPI.Application.Common.Request;
+using ManboShopAPI.Application.DTOs.ProductDtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace ManboShopAPI.Application.Contracts
 {
 	public interface IProductService
 	{
-		Task<IEnumerable<ProductDto>> GetAllProductsAsync();
+		Task<(IEnumerable<ProductDto> products, MetaData metaData)> GetAllProductsAsync(ProductRequestParameters productRequestParameters);
 		Task<ProductDto> GetProductByIdAsync(int id);
 		Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(int categoryId);
 		Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(int brandId);

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.Interfaces;
@@ -37,11 +38,12 @@ namespace ManboShopAPI.Application.Services
 			_logger = logger;
 		}
 
-		public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
+		public async Task<(IEnumerable<ProductDto> products, MetaData metaData)> GetAllProductsAsync(ProductRequestParameters productRequestParameters)
 		{
-			var products = await _productRepository.GetProductsWithDetailsAsync();
+			var products = await _productRepository.GetProductsWithDetailsAsync(productRequestParameters);
 			_logger.LogInfo("Lấy danh sách sản phẩm thành công.");
-			return _mapper.Map<IEnumerable<ProductDto>>(products);
+			var productDtoList = _mapper.Map<IEnumerable<ProductDto>>(products);
+			return (productDtoList, products.MetaData);
 		}
 
 		public async Task<ProductDto> GetProductByIdAsync(int id)
