@@ -23,14 +23,11 @@ namespace ManboShopAPI.Infrastructure
 
 			// Đăng Kí Repository
 			services.AddScoped<ICategoryRepository, CategoryRepository>();
-			//services.AddScoped<IUserRepository, UserRepository>();
-			//services.AddScoped<IAddressRepository, AddressRepository>();
+			services.AddScoped<IUserRepository, UserRepository>();
 			services.AddScoped<IProductRepository, ProductRepository>();
-			//services.AddScoped<IWishlistRepository, WishlistRepository>();
-			//services.AddScoped<ICartRepository, CartRepository>();
-			//services.AddScoped<ICategoryRepository, CategoryRepository>();
 			services.AddScoped<IBrandRepository, BrandRepository>();
-			//services.AddScoped<ISupplierRepository, SupplierRepository>();
+			services.AddScoped<IOrderRepository, OrderRepository>();
+			services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 
 
 			//Đăng Kí Unit Of Work
