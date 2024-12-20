@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ManboShopAPI.Application.UnitOfWork;
 
 namespace ManboShopAPI.Infrastructure
 {
@@ -31,7 +32,7 @@ namespace ManboShopAPI.Infrastructure
 
 
 			//Đăng Kí Unit Of Work
-			//services.AddScoped<IUnitOfWork, UnitOfWork>();
+			services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
 			return services;

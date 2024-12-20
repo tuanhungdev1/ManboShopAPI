@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ManboShopAPI.Application.DTOs.AddressDtos;
+using ManboShopAPI.Application.DTOs.UserDtos;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,16 +11,16 @@ namespace ManboShopAPI.Application.Contracts
 {
 	public interface IUserService
 	{
-		Task<Result<UserDto>> GetUserByIdAsync(int userId);
-		Task<Result<UserDto>> GetUserByEmailAsync(string email);
-		Task<Result<UserDto>> CreateUserAsync(CreateUserDto createUserDto);
-		Task<Result<UserDto>> UpdateUserAsync(int userId, UpdateUserDto updateUserDto);
-		Task<Result> DeleteUserAsync(int userId);
-		Task<Result> ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
-		Task<Result<string>> UpdateProfilePictureAsync(int userId, IFormFile file);
-		Task<Result<IEnumerable<AddressDto>>> GetUserAddressesAsync(int userId);
-		Task<Result<AddressDto>> AddUserAddressAsync(int userId, AddressDto addressDto);
-		Task<Result> SetDefaultAddressAsync(int userId, int addressId);
-		Task<Result<bool>> ValidatePasswordAsync(int userId, string password);
+		Task<UserDto> GetUserByIdAsync(int userId);
+		Task<UserDto> GetUserByEmailAsync(string email);
+		Task<UserDto> CreateUserAsync(UserForCreateDto userForCreateDto);
+		Task<UserDto> UpdateUserAsync(int userId, UserForUpdateDto userForUpdateDto);
+		Task DeleteUserAsync(int userId);
+		Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
+		Task UpdateProfilePictureAsync(int userId, IFormFile file);
+		Task<IEnumerable<AddressDto>> GetUserAddressesAsync(int userId);
+		Task AddUserAddressAsync(int userId, AddressDto addressDto);
+		Task SetDefaultAddressAsync(int userId, int addressId);
+		Task<bool> ValidatePasswordAsync(int userId, string password);
 	}
 }
