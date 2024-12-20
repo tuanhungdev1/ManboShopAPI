@@ -2,6 +2,7 @@
 using ManboShopAPI.Application.DTOs.AddressDtos;
 using ManboShopAPI.Application.DTOs.BrandDtos;
 using ManboShopAPI.Application.DTOs.CategoryDtos;
+using ManboShopAPI.Application.DTOs.FavoriteDtos;
 using ManboShopAPI.Application.DTOs.OrderDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.DTOs.UserDtos;
@@ -72,6 +73,12 @@ namespace ManboShopAPI.Application.Mappings
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 
 			//ORDER
+
+			//FAVORITE
+			CreateMap<FavoriteForCreateDto, Favorite>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+
+			//FAVORITE
 		}
 	}
 }

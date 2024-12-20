@@ -23,7 +23,7 @@ namespace ManboShopAPI.Application
 			services.AddScoped<IProductService, ProductService>();
 			services.AddScoped<IBrandService, BrandService>();
 			services.AddScoped<IOrderService, OrderService>();
-
+			services.AddScoped<IFavoriteService, FavoriteService>();
 
 			// Đăng ký AutoMapper
 			services.AddAutoMapper(Assembly.GetExecutingAssembly());

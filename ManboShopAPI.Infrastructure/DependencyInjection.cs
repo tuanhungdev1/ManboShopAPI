@@ -11,6 +11,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ManboShopAPI.Application.UnitOfWork;
+using ManboShopAPI.Application.Contracts;
+using ManboShopAPI.Application.Services;
 
 namespace ManboShopAPI.Infrastructure
 {
@@ -30,6 +32,7 @@ namespace ManboShopAPI.Infrastructure
 			services.AddScoped<IOrderRepository, OrderRepository>();
 			services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 
+			services.AddScoped<IFavoriteRepository, FavoriteRepository>();
 
 			//Đăng Kí Unit Of Work
 			services.AddScoped<IUnitOfWork, UnitOfWork>();
