@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Application.Interfaces;
+﻿using ManboShopAPI.Application.Common.Request;
+using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -12,43 +13,81 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 {
 	public class OrderRepository : RepositoryBase<Order>, IOrderRepository
 	{
-		public OrderRepository(ApplicationDbContext context) : base(context) { }
-
-		public async Task<Order?> GetOrderWithDetailsAsync(int orderId, bool asNoTracking = false)
+		public OrderRepository(ApplicationDbContext context) : base(context)
 		{
-			var query = _dbSet
-				.Include(o => o.OrderDetails)
-					.ThenInclude(od => od.Product)
-				.Include(o => o.User)
-				.Include(o => o.Coupon)
-				.Where(o => o.Id == orderId);
-
-			return asNoTracking
-				? await query.AsNoTracking().FirstOrDefaultAsync()
-				: await query.FirstOrDefaultAsync();
 		}
 
-		public async Task<IEnumerable<Order>> GetUserOrdersAsync(int userId, bool asNoTracking = false)
+		private IQueryable<Order> ApplyOrdering(IQueryable<Order> query, string orderBy, string orderKey)
 		{
-			var query = _dbSet
-				.Include(o => o.OrderDetails)
-				.Where(o => o.UserId == userId);
-
-			return asNoTracking
-				? await query.AsNoTracking().ToListAsync()
-				: await query.ToListAsync();
+			switch (orderKey.ToLower())
+			{
+				case "createdat":
+					query = orderBy?.ToLower() == "desc" ? query.OrderByDescending(o => o.CreatedAt) : query.OrderBy(o => o.CreatedAt);
+					break;
+				case "total":
+					query = orderBy?.ToLower() == "desc" ? query.OrderByDescending(o => o.Total) : query.OrderBy(o => o.Total);
+					break;
+				case "status":
+					query = orderBy?.ToLower() == "desc" ? query.OrderByDescending(o => o.Status) : query.OrderBy(o => o.Status);
+					break;
+				case "username":
+					query = orderBy?.ToLower() == "desc" ? query.OrderByDescending(o => o.User.UserName) : query.OrderBy(o => o.User.UserName);
+					break;
+				default:
+					query = query.OrderBy(o => o.Id); // Default ordering
+					break;
+			}
+			return query;
 		}
 
-		public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status, bool asNoTracking = false)
+		public async Task<PagedList<Order>> FetchAllOrderAsync(OrderRequestParameters orderRequestParameters)
 		{
-			var query = _dbSet
-				.Include(o => o.OrderDetails)
+			var query = _dbSet.AsNoTracking()
 				.Include(o => o.User)
-				.Where(o => o.Status == status);
+				.AsQueryable();
 
-			return asNoTracking
-				? await query.AsNoTracking().ToListAsync()
-				: await query.ToListAsync();
+			if (!string.IsNullOrWhiteSpace(orderRequestParameters.SearchTerm))
+			{
+				var searchTerm = orderRequestParameters.SearchTerm.Trim().ToLower();
+				query = query.Where(order => order.User.LastName.ToLower().Contains(searchTerm) ||
+											 order.User.FirstName.ToLower().Contains(searchTerm) ||
+											 order.User.UserName.ToLower().Contains(searchTerm) ||
+											 order.User.Email.ToLower().Contains(searchTerm));
+			}
+
+			if (orderRequestParameters.OrderStatus.HasValue)
+			{
+				query = query.Where(order => order.Status == orderRequestParameters.OrderStatus);
+			}
+
+			if (orderRequestParameters.FormDate.HasValue)
+			{
+				query = query.Where(order => order.CreatedAt >= orderRequestParameters.FormDate.Value);
+			}
+			if (orderRequestParameters.ToDate.HasValue)
+			{
+				query = query.Where(order => order.CreatedAt <= orderRequestParameters.ToDate.Value);
+			}
+
+			if (!string.IsNullOrWhiteSpace(orderRequestParameters.OrderBy))
+			{
+				query = ApplyOrdering(query, orderRequestParameters.OrderBy, orderRequestParameters.OrderKey);
+			}
+
+			var totalCount = await query.CountAsync();
+
+
+			var items = await query
+				.Skip((orderRequestParameters.PageNumber - 1) * orderRequestParameters.PageSize)
+				.Take(orderRequestParameters.PageSize)
+				.ToListAsync();
+
+			return new PagedList<Order>(items, totalCount, orderRequestParameters.PageNumber, orderRequestParameters.PageSize);
+		}
+
+		public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(int userId, bool asNoTracking = false)
+		{
+			return await FindByCondition(order => order.UserId == userId, asNoTracking).ToListAsync();
 		}
 	}
 }

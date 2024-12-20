@@ -2,6 +2,7 @@
 using ManboShopAPI.Application.DTOs.AddressDtos;
 using ManboShopAPI.Application.DTOs.BrandDtos;
 using ManboShopAPI.Application.DTOs.CategoryDtos;
+using ManboShopAPI.Application.DTOs.OrderDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.DTOs.UserDtos;
 using ManboShopAPI.Domain.Entities;
@@ -61,6 +62,16 @@ namespace ManboShopAPI.Application.Mappings
 			CreateMap<AddressForUpdateDto, Address>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			//ADDRESS
+
+			//ORDER
+
+			CreateMap<Order, OrderDto>();
+			CreateMap<OrderForCreateDto, Order>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			CreateMap<OrderForUpdateDto, Order>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+
+			//ORDER
 		}
 	}
 }

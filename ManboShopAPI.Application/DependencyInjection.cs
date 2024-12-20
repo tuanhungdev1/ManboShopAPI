@@ -21,12 +21,8 @@ namespace ManboShopAPI.Application
 			services.AddScoped<ICategoryService, CategoryService>();
 			services.AddScoped<IUserService, UserService>();
 			services.AddScoped<IProductService, ProductService>();
-			//services.AddScoped<ICategoryService, CategoryService>();
-			//services.AddScoped<IAuthenticationService, AuthenticationService>();
-			//services.AddScoped<ICloudinaryService, CloudinaryService>();
 			services.AddScoped<IBrandService, BrandService>();
-			//services.AddScoped<ISupplierService, SupplierService>();
-			//services.AddScoped<IWishlistService, WishlistService>();
+			services.AddScoped<IOrderService, OrderService>();
 
 
 			// Đăng ký AutoMapper
