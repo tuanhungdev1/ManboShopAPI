@@ -9,23 +9,13 @@ using System.Threading.Tasks;
 
 namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 {
-	public class RoleConfiguration : IEntityTypeConfiguration<IdentityRole>
+	public class RoleConfiguration : IEntityTypeConfiguration<IdentityRole<int>>
 	{
-		public void Configure(EntityTypeBuilder<IdentityRole> builder)
+		public void Configure(EntityTypeBuilder<IdentityRole<int>> builder)
 		{
 			builder.HasData(
-			new IdentityRole
-			{
-				Id = "1",
-				Name = "Admin",
-				NormalizedName = "ADMIN"
-			},
-			new IdentityRole
-			{
-				Id = "2",
-				Name = "Customer",
-				NormalizedName = "CUSTOMER"
-			}
+				new IdentityRole<int> { Id = 1, Name = "Admin", NormalizedName = "ADMIN" },
+				new IdentityRole<int> { Id = 2, Name = "Customer", NormalizedName = "CUSTOMER" }
 			);
 		}
 	}

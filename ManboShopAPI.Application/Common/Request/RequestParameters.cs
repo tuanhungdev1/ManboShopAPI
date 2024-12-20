@@ -24,5 +24,6 @@ namespace ManboShopAPI.Application.Common.Request
 		}
 		public string? SearchTerm { get; set; }
 		public string? OrderBy { get; set; }
-	}
+        public string? OrderKey { get; set; }
+    }
 }

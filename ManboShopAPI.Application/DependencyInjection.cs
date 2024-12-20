@@ -19,7 +19,7 @@ namespace ManboShopAPI.Application
 		{
 			// Đăng ký Services
 			services.AddScoped<ICategoryService, CategoryService>();
-			//services.AddScoped<IUserService, UserService>();
+			services.AddScoped<IUserService, UserService>();
 			services.AddScoped<IProductService, ProductService>();
 			//services.AddScoped<ICategoryService, CategoryService>();
 			//services.AddScoped<IAuthenticationService, AuthenticationService>();

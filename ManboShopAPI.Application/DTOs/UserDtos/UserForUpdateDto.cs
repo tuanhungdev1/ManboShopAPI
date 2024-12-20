@@ -47,5 +47,6 @@ namespace ManboShopAPI.Application.DTOs.UserDtos
 
 		[Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp với mật khẩu mới")]
 		public string? ConfirmNewPassword { get; set; }
+		public List<string>? Roles { get; set; }
 	}
 }

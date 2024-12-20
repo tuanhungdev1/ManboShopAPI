@@ -48,8 +48,9 @@ namespace ManboShopAPI.Application.DTOs.UserDtos
 		[RegularExpression(@"^(84|0[3|5|7|8|9])+([0-9]{8})\b",
 			ErrorMessage = "Số điện thoại không hợp lệ (Ví dụ: 0912345678 hoặc 84912345678)")]
 		public string? PhoneNumber { get; set; }
-
-		[Url(ErrorMessage = "URL ảnh đại diện không hợp lệ")]
 		public string? ProfilePictureUrl { get; set; }
-	}
+        public List<string> Roles { get; set; } = new List<string> { 
+			"Customer"
+		};
+    }
 }
