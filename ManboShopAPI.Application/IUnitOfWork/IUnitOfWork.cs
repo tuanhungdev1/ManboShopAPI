@@ -11,8 +11,9 @@ namespace ManboShopAPI.Application.UnitOfWork
 	public interface IUnitOfWork : IAsyncDisposable
 	{
 		public IUserRepository UserRepository { get; }
-		//public IAddressRepository AddressRepository { get; }
-		public IProductRepository ProductRepository { get; }
+        public INewsRepository NewsRepository { get; }
+        public INewsDetailRepository NewsDetailRepository { get; }
+        public IProductRepository ProductRepository { get; }
 		public ICategoryRepository CategoryRepository { get; }
 		public IBrandRepository BrandRepository { get; }
 		Task BeginTransactionAsync();

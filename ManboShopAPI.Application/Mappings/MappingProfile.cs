@@ -3,6 +3,7 @@ using ManboShopAPI.Application.DTOs.AddressDtos;
 using ManboShopAPI.Application.DTOs.BrandDtos;
 using ManboShopAPI.Application.DTOs.CategoryDtos;
 using ManboShopAPI.Application.DTOs.FavoriteDtos;
+using ManboShopAPI.Application.DTOs.NewsDtos;
 using ManboShopAPI.Application.DTOs.OrderDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.DTOs.UserDtos;
@@ -79,6 +80,16 @@ namespace ManboShopAPI.Application.Mappings
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 
 			//FAVORITE
+
+			//NEWS
+
+			CreateMap<News, NewsDto>();
+			CreateMap<NewsForCreateDto, News>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			CreateMap<NewsForUpdateDto, News>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+
+			//NEWS
 		}
 	}
 }

@@ -9,8 +9,8 @@ namespace ManboShopAPI.Domain.Entities
 	public class NewsDetail : BaseEntity
 	{
         public int ProductId { get; set; }
-        public required Product Product { get; set; }
+        public Product Product { get; set; }
         public int NewsId { get; set; }
-        public required News News { get; set; }
+        public News News { get; set; }
     }
 }

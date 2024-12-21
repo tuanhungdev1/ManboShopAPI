@@ -19,24 +19,32 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         private readonly ApplicationDbContext _context;
         private IDbContextTransaction? _transaction;
         private bool _disposed;
+
+        private readonly Lazy<INewsDetailRepository> _newsDetailRepository;
+        private readonly Lazy<INewsRepository> _newsRepository;
         private readonly Lazy<IUserRepository> _userRepository;
         private readonly Lazy<IProductRepository> _productRepository;
         private readonly Lazy<ICategoryRepository> _categoryRepository;
         private readonly Lazy<IBrandRepository> _brandRepository;
 
-        public UnitOfWork(ApplicationDbContext context, UserManager<User> userManager)
+        public UnitOfWork(ApplicationDbContext context,
+                          UserManager<User> userManager
+        )
         {
             _context = context;
             _userRepository = new Lazy<IUserRepository>(() => new UserRepository(_context));
             _productRepository = new Lazy<IProductRepository>(() => new ProductRepository(_context));
             _categoryRepository = new Lazy<ICategoryRepository>(() => new CategoryRepository(_context));
             _brandRepository = new Lazy<IBrandRepository>(() => new BrandRepository(_context));
+            _newsDetailRepository = new Lazy<INewsDetailRepository>(() => new NewsDetailRepository(_context));
+            _newsRepository = new Lazy<INewsRepository>(() => new NewsRepository(_context));
 
         }
 
         public IBrandRepository BrandRepository => _brandRepository.Value;
         public IUserRepository UserRepository => _userRepository.Value;
-
+        public INewsRepository NewsRepository => _newsRepository.Value;
+        public INewsDetailRepository NewsDetailRepository => _newsDetailRepository.Value;
         public IProductRepository ProductRepository => _productRepository.Value;
         public ICategoryRepository CategoryRepository => _categoryRepository.Value;
 
