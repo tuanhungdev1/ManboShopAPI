@@ -115,37 +115,9 @@ public class NewsService : INewsService
 				throw new NewsBadRequestException($"Tiêu đề tin tức {newsForUpdateDto.Title} đã tồn tại trong hệ thống.");
 			}
 
-			// Kiểm tra tất cả productIds có tồn tại không
-			foreach (var productId in newsForUpdateDto.ProductIds)
-			{
-				var product = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
-				if (product == null)
-				{
-					_logger.LogError($"Không tìm thấy sản phẩm với Id {productId}");
-					throw new ProductNotFoundException(productId);
-				}
-			}
-
-			// Cập nhật thông tin News
 			_mapper.Map(newsForUpdateDto, existingNews);
 			existingNews.UpdatedAt = DateTime.UtcNow;
 			_unitOfWork.NewsRepository.Update(existingNews);
-
-			// Xóa tất cả NewsDetails cũ
-			var existingNewsDetails = await _unitOfWork.NewsDetailRepository
-				.FindAsync(nd => nd.NewsId == newsId);
-			_unitOfWork.NewsDetailRepository.RemoveRange(existingNewsDetails);
-
-			// Thêm NewsDetails mới
-			foreach (var productId in newsForUpdateDto.ProductIds)
-			{
-				var newsDetail = new NewsDetail
-				{
-					NewsId = newsId,
-					ProductId = productId
-				};
-				await _unitOfWork.NewsDetailRepository.AddAsync(newsDetail);
-			}
 
 			await _unitOfWork.SaveChangesAsync();
 			await _unitOfWork.CommitAsync();

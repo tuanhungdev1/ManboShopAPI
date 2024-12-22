@@ -19,8 +19,5 @@ namespace ManboShopAPI.Application.DTOs.NewsDtos
 
 		[Required(ErrorMessage = "Nội dung không được để trống.")]
 		public required string Content { get; set; }
-
-		[Required(ErrorMessage = "Danh sách ID sản phẩm không được để trống.")]
-		public required List<int> ProductIds { get; set; }
 	}
 }
