@@ -10,8 +10,8 @@ namespace ManboShopAPI.Domain.Exceptions.NotFound
 
 	public sealed class BrandNotFoundException : NotFoundException
 	{
-		public BrandNotFoundException(int brandId)
-		: base($"Không tìm thấy thương hiệu với Id: {brandId} tồn tại trong cơ sở dữ liệu.")
+		public BrandNotFoundException(int bannerId)
+		: base($"Không tìm thấy banner với Id: {bannerId} tồn tại trong cơ sở dữ liệu.")
 		{
 		}
 

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Application.UnitOfWork;
+using ManboShopAPI.Application.Common.Helpers;
 
 namespace ManboShopAPI.Application.Services
 {
@@ -38,23 +39,23 @@ namespace ManboShopAPI.Application.Services
 			_unitOfWork = unitOfWork;
 		}
 
-		//public async Task<string> UploadImageAsync(IFormFile file, string folder, string prefix)
-		//{
-		//	FileHelper.ValidateFile(file);
-		//	_logger.LogInfo($"Validated file. FileName: {file.FileName}, FileSize: {file.Length} bytes");
-		//	var uniqueFileName = FileHelper.GenerateUniqueFileName(file.FileName, prefix);
-		//	Console.WriteLine(uniqueFileName);
-		//	using var stream = file.OpenReadStream();
-		//	var uploadParams = new ImageUploadParams
-		//	{
-		//		File = new FileDescription(uniqueFileName, stream),
-		//		Folder = folder,
-		//	};
+		public async Task<string> UploadImageAsync(IFormFile file, string folder, string prefix)
+		{
+			FileHelper.ValidateFile(file);
+			_logger.LogInfo($"Validated file. FileName: {file.FileName}, FileSize: {file.Length} bytes");
+			var uniqueFileName = FileHelper.GenerateUniqueFileName(file.FileName, prefix);
+			Console.WriteLine(uniqueFileName);
+			using var stream = file.OpenReadStream();
+			var uploadParams = new ImageUploadParams
+			{
+				File = new FileDescription(uniqueFileName, stream),
+				Folder = folder,
+			};
 
-		//	var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+			var uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
-		//	return uploadResult.SecureUrl.ToString();
-		//}
+			return uploadResult.SecureUrl.ToString();
+		}
 
 		public async Task DeleteImageAsync(string publicId)
 		{
@@ -78,15 +79,15 @@ namespace ManboShopAPI.Application.Services
 			}
 		}
 
-		//public async Task<string> ReplaceImageAsync(IFormFile newFile, string oldPublicId, string folder, string prefix)
-		//{
-		//	string newImageUrl = await UploadImageAsync(newFile, folder, prefix);
+		public async Task<string> ReplaceImageAsync(IFormFile newFile, string oldPublicId, string folder, string prefix)
+		{
+			string newImageUrl = await UploadImageAsync(newFile, folder, prefix);
 
-		//	if (!string.IsNullOrEmpty(oldPublicId))
-		//		await DeleteImageAsync(oldPublicId);
+			if (!string.IsNullOrEmpty(oldPublicId))
+				await DeleteImageAsync(oldPublicId);
 
-		//	return newImageUrl;
-		//}
+			return newImageUrl;
+		}
 
 		public string GetPublicIdFromUrl(string imageUrl)
 		{

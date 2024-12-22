@@ -26,8 +26,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         private readonly Lazy<IProductRepository> _productRepository;
         private readonly Lazy<ICategoryRepository> _categoryRepository;
         private readonly Lazy<IBrandRepository> _brandRepository;
+		private readonly Lazy<IBannerRepository> _bannerRepository;
 
-        public UnitOfWork(ApplicationDbContext context,
+		public UnitOfWork(ApplicationDbContext context,
                           UserManager<User> userManager
         )
         {
@@ -38,7 +39,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
             _brandRepository = new Lazy<IBrandRepository>(() => new BrandRepository(_context));
             _newsDetailRepository = new Lazy<INewsDetailRepository>(() => new NewsDetailRepository(_context));
             _newsRepository = new Lazy<INewsRepository>(() => new NewsRepository(_context));
-
+            _bannerRepository = new Lazy<IBannerRepository>(() => new BannerRepository(_context));
         }
 
         public IBrandRepository BrandRepository => _brandRepository.Value;
@@ -47,6 +48,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         public INewsDetailRepository NewsDetailRepository => _newsDetailRepository.Value;
         public IProductRepository ProductRepository => _productRepository.Value;
         public ICategoryRepository CategoryRepository => _categoryRepository.Value;
+        public IBannerRepository BannerRepository => _bannerRepository.Value;
 
         public async Task BeginTransactionAsync()
         {

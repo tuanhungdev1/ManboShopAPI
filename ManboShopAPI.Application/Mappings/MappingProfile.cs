@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using ManboShopAPI.Application.DTOs.AddressDtos;
+using ManboShopAPI.Application.DTOs.BannerDetailDtos;
+using ManboShopAPI.Application.DTOs.BannerDtos;
 using ManboShopAPI.Application.DTOs.BrandDtos;
 using ManboShopAPI.Application.DTOs.CategoryDtos;
 using ManboShopAPI.Application.DTOs.FavoriteDtos;
@@ -101,6 +103,25 @@ namespace ManboShopAPI.Application.Mappings
 			CreateMap<NewsDetailForUpdateDto, NewsDetail>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			//NEWS DETAIL
+
+
+			//BANNER
+
+			CreateMap<Banner, BannerDto>();
+			CreateMap<BannerForCreateDto, Banner>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			CreateMap<BannerForUpdateDto, Banner>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			//BANNER
+
+			//BANNER DETAIL
+
+			CreateMap<BannerDetail, BannerDetailDto>();
+			CreateMap<BannerDetailForCreateDto, BannerDetail>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			CreateMap<BannerDetailForUpdateDto, BannerDetail>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			//BANNER DETAIL
 		}
 	}
 }
