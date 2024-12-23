@@ -6,6 +6,7 @@ using ManboShopAPI.Application.DTOs.BannerDtos;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Application.UnitOfWork;
 using ManboShopAPI.Domain.Entities;
+using ManboShopAPI.Domain.Enums;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +36,7 @@ namespace ManboShopAPI.Application.Services
 		{
 			var banners = await _unitOfWork.BannerRepository.FetchAllBannerAsync(bannerRequestParameters);
 			_logger.LogInfo("Lấy danh sách banner thành công.");
-			var bannerDtoList = _mapper.Map<IEnumerable<BannerDto>>(bannerRequestParameters);
+			var bannerDtoList = _mapper.Map<IEnumerable<BannerDto>>(banners);
 			return (bannerDtoList, banners.MetaData);
 		}
 
@@ -65,7 +66,7 @@ namespace ManboShopAPI.Application.Services
 				}
 
 				// Upload image to Cloudinary
-				string folder = $"HomeDecor/{FileConstants.FoldersName.Banners}/";
+				string folder = $"ManboShopAPI/{FileConstants.FoldersName.Banners}/";
 				string imageUrl = await _cloudinaryService.UploadImageAsync(
 					bannerForCreateDto.BannerImage,
 					folder,
@@ -93,6 +94,12 @@ namespace ManboShopAPI.Application.Services
 			{
 				await _unitOfWork.BeginTransactionAsync();
 
+				if (!Enum.IsDefined(typeof(BannerStatus), bannerForUpdateDto.Status))
+				{
+					_logger.LogError("Trạng thái banner không hợp lệ.");
+					throw new BannerBadRequestException("Trạng thái banner không hợp lệ.");
+				}
+
 				var existingBanner = await _unitOfWork.BannerRepository.GetByIdAsync(bannerId);
 				if (existingBanner == null)
 				{
@@ -110,16 +117,24 @@ namespace ManboShopAPI.Application.Services
 				// Update image if provided
 				if (bannerForUpdateDto.BannerImage != null)
 				{
-					string folder = $"HomeDecor/{FileConstants.FoldersName.Banners}/";
+					string folder = $"ManboShopAPI/{FileConstants.FoldersName.Banners}/";
 					string oldPublicId = _cloudinaryService.GetPublicIdFromUrl(existingBanner.ImageUrl);
-					string newImageUrl = await _cloudinaryService.ReplaceImageAsync(
+
+					// Xóa hình ảnh cũ trên Cloudinary
+					if (!string.IsNullOrEmpty(oldPublicId))
+					{
+						await _cloudinaryService.DeleteImageAsync(oldPublicId);
+						_logger.LogInfo("Xóa hình ảnh cũ trên Cloudinary thành công");
+					}
+
+					// Tải hình ảnh mới lên Cloudinary
+					string newImageUrl = await _cloudinaryService.UploadImageAsync(
 						bannerForUpdateDto.BannerImage,
-						oldPublicId,
 						folder,
 						FileConstants.FileName.BannerImage);
 					existingBanner.ImageUrl = newImageUrl;
 
-					_logger.LogInfo("Upload File Banner lên Cloudinary thành công");
+					_logger.LogInfo("Upload File Banner lên Cloudinary thành công");
 				}
 
 				_mapper.Map(bannerForUpdateDto, existingBanner);

@@ -34,7 +34,12 @@ namespace ManboShopAPI.Application.Services
 
 		public async Task<BannerDetailDto> GetBannerDetailByIdAsync(int bannerDetailId)
 		{
-			var bannerDetail = await _bannerDetailRepository.GetByIdAsync(bannerDetailId);
+			var bannerDetail = await _bannerDetailRepository
+				.FindByCondition(bd => bd.Id == bannerDetailId)
+				.Include(bd => bd.Banner)
+				.Include(bd => bd.Product)
+				.FirstOrDefaultAsync()
+				;
 			if (bannerDetail == null)
 			{
 				_logger.LogError($"Không tìm thấy chi tiết banner với Id {bannerDetailId}");
@@ -47,7 +52,12 @@ namespace ManboShopAPI.Application.Services
 
 		public async Task<IEnumerable<BannerDetailDto>> GetAllBannerDetailAsync()
 		{
-			var bannerDetails = await _bannerDetailRepository.GetAllAsync(true);
+			var bannerDetails = await _bannerDetailRepository
+				.FindByCondition(x => true)
+				.Include(bd => bd.Banner)
+				.Include(bd => bd.Product)
+				.ToListAsync()
+				;
 			_logger.LogInfo("Lấy danh sách chi tiết banner thành công.");
 			return _mapper.Map<IEnumerable<BannerDetailDto>>(bannerDetails);
 		}

@@ -28,6 +28,7 @@ namespace ManboShopAPI.Application
 			services.AddScoped<INewsDetailService, NewsDetailService>();
 			services.AddScoped<IBannerService, BannerService>();
 			services.AddScoped<IBannerDetailService, BannerDetailService>();
+			services.AddScoped<ICloudinaryService, CloudinaryService>();
 			// Đăng ký AutoMapper
 			services.AddAutoMapper(Assembly.GetExecutingAssembly());
 			
