@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ManboShopAPI.Application.DTOs.ProductImageDtos;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,6 @@ namespace ManboShopAPI.Application.DTOs.ProductDtos
 		public string? BrandName { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
-		public ICollection<string> ImageUrls { get; set; } = new List<string>();
+		public ICollection<ProductImageDto> ProductImages { get; set; }
 	}
 }

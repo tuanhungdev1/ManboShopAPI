@@ -37,6 +37,7 @@ namespace ManboShopAPI.Infrastructure
 			services.AddScoped<INewsDetailRepository, NewsDetailRepository>();
 			services.AddScoped<IBannerRepository, BannerRepository>();
 			services.AddScoped<IBannerDetailRepository, BannerDetailRepository>();
+			services.AddScoped<IProductImageRepository, ProductImageRepository>();
 			//Đăng Kí Unit Of Work
 			services.AddScoped<IUnitOfWork, UnitOfWork>();
 

@@ -31,6 +31,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 
 			var query = _dbSet
+				.Include(p => p.Category)
+				.Include(p => p.Brand)
+				.Include(p => p.ProductImages)
 				.AsNoTracking()
 				.AsQueryable();
 
@@ -106,6 +109,8 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 			return await _dbSet
 				.Where(p => p.CategoryId == categoryId)
+				.Include(p => p.Category)
+				.Include(p => p.Brand)
 				.Include(p => p.ProductImages)
 				.ToListAsync();
 		}
@@ -114,6 +119,8 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 			return await _dbSet
 				.Where(p => p.BrandId == brandId)
+				.Include(p => p.Category)
+				.Include(p => p.Brand)
 				.Include(p => p.ProductImages)
 				.ToListAsync();
 		}

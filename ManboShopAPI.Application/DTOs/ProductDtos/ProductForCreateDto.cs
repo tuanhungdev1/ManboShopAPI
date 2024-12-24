@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace ManboShopAPI.Application.DTOs.ProductDtos
 		public int? CategoryId { get; set; }
 
 		public int? BrandId { get; set; }
-
-		public List<string> ImageUrls { get; set; } = new List<string>();
+		[Required(ErrorMessage = "Hình ảnh sản phẩm không được để trống, bạn nên upload ít nhất 1 và nhiều nhất là 5 hình ảnh")]
+		public List<IFormFile> Images { get; set; }
 	}
 }

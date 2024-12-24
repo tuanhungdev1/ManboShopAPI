@@ -9,6 +9,7 @@ using ManboShopAPI.Application.DTOs.NewsDetailDto;
 using ManboShopAPI.Application.DTOs.NewsDtos;
 using ManboShopAPI.Application.DTOs.OrderDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
+using ManboShopAPI.Application.DTOs.ProductImageDtos;
 using ManboShopAPI.Application.DTOs.UserDtos;
 using ManboShopAPI.Domain.Entities;
 using System;
@@ -122,6 +123,12 @@ namespace ManboShopAPI.Application.Mappings
 			CreateMap<BannerDetailForUpdateDto, BannerDetail>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			//BANNER DETAIL
+
+			//PRODUCT IMAGE
+
+			CreateMap<ProductImage, ProductImageDto>();
+
+			//PRODUCT IMAGE
 		}
 	}
 }

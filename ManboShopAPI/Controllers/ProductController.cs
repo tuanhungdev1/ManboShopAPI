@@ -25,14 +25,14 @@ namespace ManboShopAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts([FromQuery] ProductRequestParameters productRequestParameters)
 		{
-			var productsResult = await _productService.GetAllProductsAsync(productRequestParameters);
+			var (products, metaData) = await _productService.GetAllProductsAsync(productRequestParameters);
 			return Ok(new ApiResponse<object>
 			{
 				StatusCode = 200,
 				Success = true,
-				Message = "Lấy danh sách sản phẩm thành công.",
-				Data = productsResult.products,
-				Pagination = productsResult.metaData
+				Message = "Lấy dữ liệu danh sách sản phẩm thành công.",
+				Data = products,
+				Pagination = metaData
 			});
 		}
 
@@ -46,7 +46,7 @@ namespace ManboShopAPI.Controllers
 			{
 				StatusCode = 200,
 				Success = true,
-				Message = $"Lấy thông tin sản phẩm với Id {id} thành công.",
+				Message = $"Lấy dữ liệu sản phẩm với Id {id} thành công.",
 				Data = product
 			});
 		}
@@ -61,7 +61,7 @@ namespace ManboShopAPI.Controllers
 			{
 				StatusCode = 200,
 				Success = true,
-				Message = $"Lấy danh sách sản phẩm theo danh mục Id {categoryId} thành công.",
+				Message = $"Lấy dữ liệu danh sách sản phẩm theo danh mục Id {categoryId} thành công.",
 				Data = products
 			});
 		}
@@ -76,7 +76,7 @@ namespace ManboShopAPI.Controllers
 			{
 				StatusCode = 200,
 				Success = true,
-				Message = $"Lấy danh sách sản phẩm theo thương hiệu Id {brandId} thành công.",
+				Message = $"Lấy dữ liệu danh sách sản phẩm theo thương hiệu Id {brandId} thành công.",
 				Data = products
 			});
 		}
@@ -85,14 +85,14 @@ namespace ManboShopAPI.Controllers
 		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> CreateProduct([FromBody] ProductForCreateDto productDto)
+		public async Task<IActionResult> CreateProduct([FromForm] ProductForCreateDto productDto)
 		{
 			var createdProduct = await _productService.CreateProductAsync(productDto);
 			return StatusCode(201, new ApiResponse<object>
 			{
 				StatusCode = 201,
 				Success = true,
-				Message = "Tạo mới sản phẩm thành công.",
+				Message = "Tạo mới một sản phẩm thành công.",
 				Data = createdProduct
 			});
 		}
@@ -104,14 +104,14 @@ namespace ManboShopAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<IActionResult> UpdateProduct(
 			int id,
-			[FromBody] ProductForUpdateDto productDto)
+			[FromForm] ProductForUpdateDto productDto)
 		{
 			var updatedProduct = await _productService.UpdateProductAsync(id, productDto);
 			return Ok(new ApiResponse<object>
 			{
 				StatusCode = 200,
 				Success = true,
-				Message = $"Cập nhật sản phẩm với Id {id} thành công.",
+				Message = $"Cập nhật dữ liệu sản phẩm với Id {id} thành công.",
 				Data = updatedProduct
 			});
 		}
@@ -144,7 +144,7 @@ namespace ManboShopAPI.Controllers
 				StatusCode = 200,
 				Success = true,
 				Message = $"Cập nhật số lượng sản phẩm với Id {id} thành công.",
-				Data = new { Id = id, productForUpdateQuantityDto.Quantity }
+				Data = new { Id = id, Quantity = productForUpdateQuantityDto.Quantity }
 			});
 		}
 	}

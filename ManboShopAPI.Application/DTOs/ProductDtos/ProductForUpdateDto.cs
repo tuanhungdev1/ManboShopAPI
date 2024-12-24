@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -38,6 +39,6 @@ namespace ManboShopAPI.Application.DTOs.ProductDtos
 
 		public int? BrandId { get; set; }
 
-		public List<string> ImageUrls { get; set; } = new List<string>();
+		public List<IFormFile>? Images { get; set; }
 	}
 }
