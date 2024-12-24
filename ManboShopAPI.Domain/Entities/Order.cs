@@ -11,8 +11,9 @@ namespace ManboShopAPI.Domain.Entities
 {
 	public class Order : BaseEntity
 	{
-        public int UserId { get; set; }
-        public User User { get; set; }
+        public int? UserId { get; set; }
+        public User? User { get; set; }
+        public string? SessionId { get; set; }
         [MaxLength(500)]
         public string? Note { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Pending;

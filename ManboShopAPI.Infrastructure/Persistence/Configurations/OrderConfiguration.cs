@@ -17,7 +17,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 			builder.HasOne(o => o.User)
 				.WithMany(u => u.Orders)
 				.HasForeignKey(o => o.UserId)
-				.IsRequired(true)
+				.IsRequired(false)
 				.OnDelete(DeleteBehavior.Cascade);
 
 			builder.HasOne(o => o.Coupon)

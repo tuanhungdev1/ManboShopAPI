@@ -4,17 +4,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Infrastructure.Persistence
 {
-    public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, int>
+	public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
 		public ApplicationDbContext(DbContextOptions options) : base(options)
 		{
@@ -43,6 +36,8 @@ namespace ManboShopAPI.Infrastructure.Persistence
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<CouponCondition> CouponConditions { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -76,6 +71,8 @@ namespace ManboShopAPI.Infrastructure.Persistence
 			modelBuilder.ApplyConfiguration(new OrderDetailConfiguration());
 
 			modelBuilder.ApplyConfiguration(new ProductImageConfiguration());
+
+			modelBuilder.ApplyConfiguration(new CartItemConfiguration());
 
 		}
 	}
