@@ -9,6 +9,9 @@ namespace ManboShopAPI.Application.DTOs.UserDtos
 {
 	public class ChangePasswordDto
 	{
+		[Required(ErrorMessage = "Username là bắt buộc.")]
+		[MaxLength(100, ErrorMessage = "Username không được vượt quá 100 ký tự.")]
+		public string UserName { get; set; }
 		[Required(ErrorMessage = "Mật khẩu mới không được để trống")]
 		[StringLength(100, MinimumLength = 6,
 			ErrorMessage = "Mật khẩu mới phải có độ dài từ 6 đến 100 ký tự")]

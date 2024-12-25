@@ -48,6 +48,8 @@ namespace ManboShopAPI.Application.Mappings
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			CreateMap<ProductForUpdateDto, Product>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			
+		
 			//PRODUCT
 
 			//USER
@@ -55,6 +57,8 @@ namespace ManboShopAPI.Application.Mappings
 			CreateMap<UserForCreateDto, User>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			CreateMap<UserForUpdateDto, User>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			CreateMap<UserForRegistrationDto, User>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			//USER
 

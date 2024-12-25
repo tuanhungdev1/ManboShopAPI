@@ -31,6 +31,7 @@ namespace ManboShopAPI.Application
 			services.AddScoped<ICloudinaryService, CloudinaryService>();
 			services.AddScoped<ICartService, CartService>();
 			services.AddScoped<ICartItemService, CartItemService>();
+			services.AddScoped<IAuthService, AuthService>();
 			// Đăng ký AutoMapper
 			services.AddAutoMapper(Assembly.GetExecutingAssembly());
 			

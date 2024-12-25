@@ -146,8 +146,9 @@ namespace ManboShopAPI.Application.Services
 				_logger.LogError($"Không tìm thấy đơn hàng với Id {orderId}");
 				throw new OrderNotFoundException(orderId);
 			}
-		
-			_orderRepository.Remove(existingOrder);
+
+			//_orderRepository.Remove(existingOrder);
+			existingOrder.Status = OrderStatus.Failed;
 			await _orderRepository.SaveChangesAsync();
 			_logger.LogInfo($"Xóa thành công đơn hàng với Id {existingOrder.Id}");
 		}

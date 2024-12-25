@@ -9,7 +9,6 @@ using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Enums;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
-using Microsoft.EntityFrameworkCore;
 
 namespace ManboShopAPI.Application.Services
 {

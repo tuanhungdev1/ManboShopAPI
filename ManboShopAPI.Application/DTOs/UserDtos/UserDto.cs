@@ -19,5 +19,6 @@ namespace ManboShopAPI.Application.DTOs.UserDtos
 		public string? PhoneNumber { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
-	}
+		public ICollection<string> Roles { get; set; } = new List<string>();
+    }
 }
