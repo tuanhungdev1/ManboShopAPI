@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Domain.Entities;
+﻿using ManboShopAPI.Application.DTOs.CartItemDtos;
+using ManboShopAPI.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,10 @@ namespace ManboShopAPI.Application.DTOs.CartDtos
 	public class CartDto
 	{
         public int Id { get; set; }
-        public int SessionId { get; set; }
+        public string? SessionId { get; set; }
 		public int? UserId { get; set; }
 		public User? User { get; set; }
-		public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+		public ICollection<CartItemDto> CartItems { get; set; } 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }

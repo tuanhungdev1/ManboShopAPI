@@ -17,6 +17,10 @@ namespace ManboShopAPI.Application.UnitOfWork
 		public ICategoryRepository CategoryRepository { get; }
 		public IBrandRepository BrandRepository { get; }
 		public IBannerRepository BannerRepository { get; }
+		public ICartItemRepository CartItemRepository { get; }
+		public ICartRepository CartRepository { get; }
+		public IOrderRepository OrderRepository { get; }
+		public IOrderDetailRepository OrderDetailRepository { get; }
 		Task BeginTransactionAsync();
 		Task CommitAsync();
 		Task RollbackAsync();

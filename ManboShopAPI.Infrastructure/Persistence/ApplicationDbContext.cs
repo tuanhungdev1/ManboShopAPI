@@ -74,6 +74,8 @@ namespace ManboShopAPI.Infrastructure.Persistence
 
 			modelBuilder.ApplyConfiguration(new CartItemConfiguration());
 
+			modelBuilder.ApplyConfiguration(new CartConfiguration());
+
 		}
 	}
 }

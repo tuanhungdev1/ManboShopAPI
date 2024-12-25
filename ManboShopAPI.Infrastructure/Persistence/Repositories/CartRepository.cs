@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Application.Interfaces;
+﻿using ManboShopAPI.Application.Common.Request;
+using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -15,7 +16,46 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 		}
 
-		public async Task<Cart?> GetCartBySessionIdAsync(int sessionId, bool includeItems = false)
+		public async Task<PagedList<Cart>> FetchAllCartAsync(CartRequestParameters cartRequestParameters)
+		{
+			var query = _dbSet
+						.Include(c => c.CartItems)
+						.ThenInclude(ci => ci.Product)
+						.Include(c => c.User)
+						.AsNoTracking().AsQueryable();
+
+			if (!string.IsNullOrWhiteSpace(cartRequestParameters.SearchTerm))
+			{
+				query = query.Where(c => c.User.LastName.Contains(cartRequestParameters.SearchTerm)
+										|| c.User.FirstName.Contains(cartRequestParameters.SearchTerm)
+										|| c.User.Email.Contains(cartRequestParameters.SearchTerm)
+										|| c.User.UserName.Contains(cartRequestParameters.SearchTerm)
+				);
+			}
+
+			if (!string.IsNullOrWhiteSpace(cartRequestParameters.OrderBy))
+			{
+				var orderKey = cartRequestParameters.OrderKey?.Trim().ToLower() ?? "";
+				var orderBy = cartRequestParameters.OrderBy.Trim().ToLower();
+				query = orderKey switch
+				{
+					"created" => orderBy == "desc" ? query.OrderByDescending(b => b.CreatedAt) : query.OrderBy(b => b.CreatedAt),
+					_ => query.OrderBy(b => b.Id),
+				};
+
+			}
+
+			var totalCount = await query.CountAsync();
+
+			var items = await query
+				.Skip((cartRequestParameters.PageNumber - 1) * cartRequestParameters.PageSize)
+				.Take(cartRequestParameters.PageSize)
+				.ToListAsync();
+
+			return new PagedList<Cart>(items, totalCount, cartRequestParameters.PageNumber, cartRequestParameters.PageSize);
+		}
+
+		public async Task<Cart?> GetCartBySessionIdAsync(string sessionId, bool includeItems = false)
 		{
 			IQueryable<Cart> query = _dbSet;
 
@@ -45,7 +85,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				.FirstOrDefaultAsync(c => c.UserId == userId);
 		}
 
-		public async Task<bool> IsCartExistsAsync(int sessionId)
+		public async Task<bool> IsCartExistsAsync(string sessionId)
 		{
 			return await _dbSet.AnyAsync(c => c.SessionId == sessionId);
 		}
@@ -125,7 +165,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				.SumAsync(ci => ci.Quantity * ci.Product.Price);
 		}
 
-		public async Task UpdateCartSessionAsync(int cartId, int newSessionId)
+		public async Task UpdateCartSessionAsync(int cartId, string newSessionId)
 		{
 			var cart = await _dbSet.FindAsync(cartId);
 			if (cart != null)

@@ -7,6 +7,7 @@ using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Enums;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManboShopAPI.Application.Services
 {
@@ -38,7 +39,13 @@ namespace ManboShopAPI.Application.Services
 
 		public async Task<OrderDto> GetOrderByIdAsync(int orderId)
 		{
-			var order = await _orderRepository.GetByIdAsync(orderId);
+			var order = await _orderRepository
+				.FindByCondition(o => o.Id == orderId)
+				.Include(o => o.OrderDetails)
+				.ThenInclude(od => od.Product)
+				.ThenInclude(p => p.ProductImages)
+				.FirstOrDefaultAsync()
+				;
 			if (order == null)
 			{
 				_logger.LogError($"Không tìm thấy đơn hàng với Id {orderId}");
@@ -50,12 +57,39 @@ namespace ManboShopAPI.Application.Services
 
 		public async Task CreateOrderAsync(OrderForCreateDto orderForCreateDto)
 		{
-			var user = await _userRepository.GetByIdAsync(orderForCreateDto.UserId);
-
-			if (user == null)
+			
+			if(orderForCreateDto.UserId == null && orderForCreateDto.SessionId == null)
 			{
-				_logger.LogError($"Không tìm thấy người dùng với Id {orderForCreateDto.UserId}");
-				throw new UserNotFoundException(orderForCreateDto.UserId);
+				_logger.LogError("UserId hoặc SessionId không được để trống");
+				throw new OrderBadRequestException("UserId hoặc SessionId không được để trống");
+			}
+
+			if(orderForCreateDto.UserId != null & orderForCreateDto.SessionId != null)
+			{
+				_logger.LogError("Chỉ được chọn một trong hai UserId hoặc SessionId");
+				throw new OrderBadRequestException("Chỉ được chọn một trong hai UserId hoặc SessionId");
+			}
+
+			if(orderForCreateDto.UserId.HasValue)
+			{
+				var user = await _userRepository.GetByIdAsync(orderForCreateDto.UserId.Value);
+
+				if(user == null)
+				{
+					_logger.LogError($"Không tìm thấy người dùng với Id {orderForCreateDto.UserId}");
+					throw new UserNotFoundException(orderForCreateDto.UserId.Value);
+				}
+			}
+
+			if(orderForCreateDto.SessionId != null)
+			{
+				var isCartExist = await _orderRepository.IsOrderExistingBySessionIdAsync(orderForCreateDto.SessionId);
+
+				if(isCartExist)
+				{
+					_logger.LogError($"Đơn hàng với SessionId {orderForCreateDto.SessionId} đã tồn tại.");
+					throw new OrderBadRequestException($"Đơn hàng với SessionId {orderForCreateDto.SessionId} đã tồn tại.");
+				}
 			}
 
 			var isValidateStatus = Enum.IsDefined(typeof(OrderStatus), orderForCreateDto.Status);

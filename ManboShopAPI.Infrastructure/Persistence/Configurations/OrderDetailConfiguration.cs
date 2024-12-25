@@ -25,7 +25,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 
 			builder.HasOne(o => o.Product)
 				.WithMany(p => p.OrderDetails)
-				.HasForeignKey(p => p.OrderId)
+				.HasForeignKey(p => p.ProductId)
 				.IsRequired(true)
 				.OnDelete(DeleteBehavior.Cascade);
 

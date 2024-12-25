@@ -89,5 +89,11 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 			return await FindByCondition(order => order.UserId == userId, asNoTracking).ToListAsync();
 		}
+
+
+		public async Task<bool> IsOrderExistingBySessionIdAsync(string sessionId)
+		{
+			return await _dbSet.AnyAsync(order => order.SessionId == sessionId);
+		}
 	}
 }

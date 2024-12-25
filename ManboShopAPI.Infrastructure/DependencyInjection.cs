@@ -5,14 +5,7 @@ using ManboShopAPI.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ManboShopAPI.Application.UnitOfWork;
-using ManboShopAPI.Application.Contracts;
-using ManboShopAPI.Application.Services;
 
 namespace ManboShopAPI.Infrastructure
 {
@@ -38,6 +31,8 @@ namespace ManboShopAPI.Infrastructure
 			services.AddScoped<IBannerRepository, BannerRepository>();
 			services.AddScoped<IBannerDetailRepository, BannerDetailRepository>();
 			services.AddScoped<IProductImageRepository, ProductImageRepository>();
+			services.AddScoped<ICartRepository, CartRepository>();
+			services.AddScoped<ICartItemRepository, CartItemRepository>();
 			//Đăng Kí Unit Of Work
 			services.AddScoped<IUnitOfWork, UnitOfWork>();
 

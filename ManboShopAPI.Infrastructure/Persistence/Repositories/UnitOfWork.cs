@@ -27,6 +27,10 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         private readonly Lazy<ICategoryRepository> _categoryRepository;
         private readonly Lazy<IBrandRepository> _brandRepository;
 		private readonly Lazy<IBannerRepository> _bannerRepository;
+        private readonly Lazy<ICartItemRepository> _cartItemRepository;
+        private readonly Lazy<ICartRepository> _cartRepository;
+        private readonly Lazy<IOrderDetailRepository> _orderDetailRepository;
+        private readonly Lazy<OrderRepository> _orderRepository;
 
 		public UnitOfWork(ApplicationDbContext context,
                           UserManager<User> userManager
@@ -40,6 +44,10 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
             _newsDetailRepository = new Lazy<INewsDetailRepository>(() => new NewsDetailRepository(_context));
             _newsRepository = new Lazy<INewsRepository>(() => new NewsRepository(_context));
             _bannerRepository = new Lazy<IBannerRepository>(() => new BannerRepository(_context));
+            _cartItemRepository = new Lazy<ICartItemRepository>(() => new CartItemRepository(_context));
+            _cartRepository = new Lazy<ICartRepository>(() => new CartRepository(_context));
+            _orderDetailRepository = new Lazy<IOrderDetailRepository>(() => new OrderDetailRepository(_context));
+            _orderRepository = new Lazy<OrderRepository>(() => new OrderRepository(_context));
         }
 
         public IBrandRepository BrandRepository => _brandRepository.Value;
@@ -49,6 +57,10 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         public IProductRepository ProductRepository => _productRepository.Value;
         public ICategoryRepository CategoryRepository => _categoryRepository.Value;
         public IBannerRepository BannerRepository => _bannerRepository.Value;
+        public ICartItemRepository CartItemRepository => _cartItemRepository.Value;
+        public ICartRepository CartRepository => _cartRepository.Value;
+        public IOrderDetailRepository OrderDetailRepository => _orderDetailRepository.Value;
+        public IOrderRepository OrderRepository => _orderRepository.Value;
 
         public async Task BeginTransactionAsync()
         {

@@ -3,21 +3,18 @@ using ManboShopAPI.Application.DTOs.AddressDtos;
 using ManboShopAPI.Application.DTOs.BannerDetailDtos;
 using ManboShopAPI.Application.DTOs.BannerDtos;
 using ManboShopAPI.Application.DTOs.BrandDtos;
+using ManboShopAPI.Application.DTOs.CartDtos;
+using ManboShopAPI.Application.DTOs.CartItemDtos;
 using ManboShopAPI.Application.DTOs.CategoryDtos;
 using ManboShopAPI.Application.DTOs.FavoriteDtos;
 using ManboShopAPI.Application.DTOs.NewsDetailDto;
 using ManboShopAPI.Application.DTOs.NewsDtos;
+using ManboShopAPI.Application.DTOs.OrderDetailDtos;
 using ManboShopAPI.Application.DTOs.OrderDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.DTOs.ProductImageDtos;
 using ManboShopAPI.Application.DTOs.UserDtos;
 using ManboShopAPI.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application.Mappings
 {
@@ -79,6 +76,10 @@ namespace ManboShopAPI.Application.Mappings
 
 			//ORDER
 
+			//ORDER DETAIL
+			CreateMap<OrderDetail, OrderDetailDto>();
+			//ORDER DETAIL
+
 			//FAVORITE
 			CreateMap<FavoriteForCreateDto, Favorite>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
@@ -129,6 +130,22 @@ namespace ManboShopAPI.Application.Mappings
 			CreateMap<ProductImage, ProductImageDto>();
 
 			//PRODUCT IMAGE
+
+
+			//CART
+
+			CreateMap<CartForCreateDto, Cart>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			CreateMap<Cart, CartDto>()
+				.ForMember(dest => dest.CartItems, opt => opt.MapFrom(c => c.CartItems));
+			//CART
+
+			// CART ITEM
+
+			CreateMap<CartItem, CartItemDto>();
+			CreateMap<CartItemForCreateDto, CartItem>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			//CART ITEM
 		}
 	}
 }
