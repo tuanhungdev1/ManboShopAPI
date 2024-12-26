@@ -79,6 +79,11 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				: await query.FirstOrDefaultAsync();
 		}
 
+		public Task<bool> UserExistsAsync(int userId)
+		{
+			return _dbSet.AnyAsync(u => u.Id == userId);
+		}
+
 		public async Task<bool> EmailExistsAsync(string email)
 		{
 			return await _dbSet.AnyAsync(u => u.Email == email);

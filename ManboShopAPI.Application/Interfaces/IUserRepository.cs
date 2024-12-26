@@ -17,5 +17,6 @@ namespace ManboShopAPI.Application.Interfaces
 		Task<User?> GetUserWithOrdersAsync(int userId, bool asNoTracking = false);
 		Task<bool> EmailExistsAsync(string email);
 		Task<bool> UserNameExistsAsync(string userName);
+		Task<bool> UserExistsAsync(int userId);
 	}
 }
