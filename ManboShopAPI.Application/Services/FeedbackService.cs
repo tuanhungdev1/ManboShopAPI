@@ -6,6 +6,7 @@ using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using ManboShopAPI.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManboShopAPI.Application.Services
 {
@@ -144,16 +145,12 @@ namespace ManboShopAPI.Application.Services
 			{
 				await _unitOfWork.BeginTransactionAsync();
 
-				var existingFeedback = await _feedbackRepository.GetFeedbackWithDetailsAsync(id);
+				var existingFeedback = await _feedbackRepository.FindByCondition(fb => fb.Id == id)
+										.FirstOrDefaultAsync();
+					;
 				if (existingFeedback == null)
 				{
 					throw new FeedbackNotFoundException(id);
-				}
-
-				// Kiểm tra xem feedback có thuộc về user không
-				if (existingFeedback.UserId != feedbackDto.UserId)
-				{
-					throw new FeedbackBadRequestException("Không thể cập nhật đánh giá của người khác");
 				}
 
 				_mapper.Map(feedbackDto, existingFeedback);

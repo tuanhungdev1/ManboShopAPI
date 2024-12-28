@@ -1,4 +1,5 @@
 ﻿using ManboShopAPI.Application.Contracts;
+using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Application.Mappings;
 using ManboShopAPI.Application.Services;
 using ManboShopAPI.Domain.Interfaces;
@@ -32,6 +33,7 @@ namespace ManboShopAPI.Application
 			services.AddScoped<ICartService, CartService>();
 			services.AddScoped<ICartItemService, CartItemService>();
 			services.AddScoped<IAuthService, AuthService>();
+			services.AddScoped<IFeedbackService, FeedbackService>();
 			// Đăng ký AutoMapper
 			services.AddAutoMapper(Assembly.GetExecutingAssembly());
 			

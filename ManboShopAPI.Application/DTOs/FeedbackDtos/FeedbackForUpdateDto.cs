@@ -11,11 +11,5 @@ namespace ManboShopAPI.Application.DTOs.FeedbackDtos
 		[Range(0, 5, ErrorMessage = "Star rating must be between 0 and 5.")]
 		[Required(ErrorMessage = "Star rating is required.")]
 		public int Star { get; set; }
-
-		[Required(ErrorMessage = "User ID is required.")]
-		public int UserId { get; set; }
-
-		[Required(ErrorMessage = "Product ID is required.")]
-		public int ProductId { get; set; }
 	}
 }

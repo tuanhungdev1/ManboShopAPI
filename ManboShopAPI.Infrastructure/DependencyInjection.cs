@@ -33,6 +33,7 @@ namespace ManboShopAPI.Infrastructure
 			services.AddScoped<IProductImageRepository, ProductImageRepository>();
 			services.AddScoped<ICartRepository, CartRepository>();
 			services.AddScoped<ICartItemRepository, CartItemRepository>();
+			services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 			//Đăng Kí Unit Of Work
 			services.AddScoped<IUnitOfWork, UnitOfWork>();
 

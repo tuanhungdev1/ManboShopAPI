@@ -7,6 +7,7 @@ using ManboShopAPI.Application.DTOs.CartDtos;
 using ManboShopAPI.Application.DTOs.CartItemDtos;
 using ManboShopAPI.Application.DTOs.CategoryDtos;
 using ManboShopAPI.Application.DTOs.FavoriteDtos;
+using ManboShopAPI.Application.DTOs.FeedbackDtos;
 using ManboShopAPI.Application.DTOs.NewsDetailDto;
 using ManboShopAPI.Application.DTOs.NewsDtos;
 using ManboShopAPI.Application.DTOs.OrderDetailDtos;
@@ -150,6 +151,17 @@ namespace ManboShopAPI.Application.Mappings
 			CreateMap<CartItemForCreateDto, CartItem>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			//CART ITEM
+
+
+			//FEEDBACK
+
+			CreateMap<Feedback, FeedbackDto>();
+			CreateMap<FeedbackForCreateDto, Feedback>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			CreateMap<FeedbackForUpdateDto, Feedback>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+
+			//FEEDBACK
 		}
 	}
 }
