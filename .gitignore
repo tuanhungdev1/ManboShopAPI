@@ -364,3 +364,8 @@ FodyWeavers.xsd
 
 **/appsettings.json
 **/appsettings.*.json
+
+
+./ManboShopAPI/appsettings.json
+./ManboShopAPI/appsettings.Development.json
+./ManboShopAPI/appsettings.Production.json
