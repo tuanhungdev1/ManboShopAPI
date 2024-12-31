@@ -130,6 +130,10 @@ namespace ManboShopAPI
 			builder.Services.Configure<CloudinarySettings>(
 														builder.Configuration.GetSection("CloudinarySettings")
 														);
+
+			builder.Services.Configure<EmailConfiguration>(
+														builder.Configuration.GetSection("EmailConfiguration")
+														);
 			//ServicesExtensions
 			builder.Services.ConfigureIdentity();
 			builder.Services.ConfigureIISIntegration();
