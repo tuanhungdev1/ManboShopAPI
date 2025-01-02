@@ -1,10 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
+﻿using ManboShopAPI.Application.DTOs.AttributeDtos;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application.DTOs.ProductDtos
 {
@@ -40,5 +36,7 @@ namespace ManboShopAPI.Application.DTOs.ProductDtos
 		public int? BrandId { get; set; }
 
 		public List<IFormFile>? Images { get; set; }
+
+		public ICollection<AttributeForUpdateDto> AttributeForUpdateDtos { get; set; } = new List<AttributeForUpdateDto>();
 	}
 }

@@ -10,6 +10,7 @@ using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using ManboShopAPI.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Net.WebSockets;
 
 namespace ManboShopAPI.Application.Services
 {
@@ -113,10 +114,10 @@ namespace ManboShopAPI.Application.Services
 					throw new ProductBadRequestException($"Sản phẩm với tên '{productDto.Name}' đã tồn tại.");
 				}
 
-				if (productDto.Images.Count != null && productDto.Images.Count > 5)
+				if (productDto.Images.Count != null && productDto.Images.Count > 20)
 				{
-					_logger.LogError("Số lượng hình ảnh vượt quá giới hạn cho phép (tối đa 5 hình)");
-					throw new ProductBadRequestException("Chỉ được phép upload tối đa 5 hình ảnh cho sản phẩm");
+					_logger.LogError("Số lượng hình ảnh vượt quá giới hạn cho phép (tối đa 20 hình)");
+					throw new ProductBadRequestException("Chỉ được phép upload tối đa 20 hình ảnh cho sản phẩm");
 				}
 
 				var product = _mapper.Map<Product>(productDto);
@@ -144,11 +145,52 @@ namespace ManboShopAPI.Application.Services
 					_logger.LogInfo($"Upload hình ảnh cho sản phẩm '{product.Name}' thành công.");
 				}
 
+				foreach(var attribute in productDto.AttributeForCreateDtos)
+				{
+
+					var existingAttribute = await _unitOfWork.AttributeRepository
+						.FindByCondition(a => a.Name == attribute.Name).FirstOrDefaultAsync();
+					
+					if(existingAttribute != null)
+					{
+						ProductAttributeValue productAttributeValue = new ProductAttributeValue
+						{
+							ProductId = product.Id,
+							AttributeId = existingAttribute.Id,
+							Value = attribute.Value
+						};
+
+						await _unitOfWork.ProductAttributeValueRepository.AddAsync(productAttributeValue);
+					} else
+					{
+						var productAttribute = new Attributes
+						{
+							Name = attribute.Name,
+						};
+
+						await _unitOfWork.AttributeRepository.AddAsync(productAttribute);
+
+						var productAttributeValue = new ProductAttributeValue
+						{
+							ProductId = product.Id,
+							AttributeId = productAttribute.Id,
+							Value = attribute.Value
+						};
+
+						await _unitOfWork.ProductAttributeValueRepository.AddAsync(productAttributeValue);
+					}
+					
+					await _productImageRepository.SaveChangesAsync();
+					_logger.LogInfo($"Thêm thuộc tính cho sản phẩm '{product.Name}' thành công.");
+				}
+
 				var newProduct = await _productRepository
 								.FindByCondition(p => p.Id == product.Id)
 								.Include(p => p.Category)
 								.Include(p => p.Brand)
 								.Include(p => p.ProductImages)
+								.Include(p => p.ProductAttributeValues)
+								.ThenInclude(pav => pav.Attribute)
 								.FirstOrDefaultAsync();
 
 				
@@ -233,6 +275,45 @@ namespace ManboShopAPI.Application.Services
 				_productRepository.Update(existingProduct);
 				await _productRepository.SaveChangesAsync();
 
+				// Cập nhật thông tin thuộc tính sản phẩm
+
+				var existingProductAttributeValues = await _unitOfWork.ProductAttributeValueRepository
+					.FindByCondition(pav => pav.ProductId == productId)
+					.Include(pav => pav.Attribute)
+					.ToListAsync();
+
+				foreach (var attribute in productDto.AttributeForUpdateDtos)
+				{
+
+					var existingAttribute = existingProductAttributeValues
+						.FirstOrDefault(pav => pav.Attribute.Name == attribute.Name);
+
+					if (existingAttribute != null)
+					{
+						existingAttribute.Value = attribute.Value;
+						_unitOfWork.ProductAttributeValueRepository.Update(existingAttribute);
+					}
+					else
+					{
+						var productAttribute = new Attributes
+						{
+							Name = attribute.Name,
+						};
+
+						await _unitOfWork.AttributeRepository.AddAsync(productAttribute);
+						await _unitOfWork.AttributeRepository.SaveChangesAsync();
+						var productAttributeValue = new ProductAttributeValue
+						{
+							ProductId = productId,
+							AttributeId = productAttribute.Id,
+							Value = attribute.Value
+						};
+
+						await _unitOfWork.ProductAttributeValueRepository.AddAsync(productAttributeValue);
+					}	
+				}
+				await _unitOfWork.ProductAttributeValueRepository.SaveChangesAsync();
+
 				// Lấy thông tin sản phẩm đã cập nhật
 				var updatedProduct = await _productRepository
 					.FindByCondition(p => p.Id == productId)
@@ -280,6 +361,32 @@ namespace ManboShopAPI.Application.Services
 					_logger.LogInfo($"Xóa hình ảnh của sản phẩm với id {productId} thành công.");
 				}
 				_logger.LogInfo($"Xóa hình ảnh của sản phẩm với id {productId} thành công.");
+
+
+				var cartItems = await _unitOfWork.CartItemRepository
+					.FindByCondition(ci => ci.ProductId == productId)
+					.ToListAsync();
+
+				_unitOfWork.CartItemRepository.RemoveRange(cartItems);
+				await _unitOfWork.CartItemRepository.SaveChangesAsync();
+				_logger.LogInfo($"Xóa thông tin giỏ hàng của sản phẩm với id {productId} thành công.");
+
+				var productAttributeValues = await _unitOfWork.ProductAttributeValueRepository
+					.FindByCondition(pav => pav.ProductId == productId)
+					.ToListAsync();
+
+				_unitOfWork.ProductAttributeValueRepository.RemoveRange(productAttributeValues);
+				await _unitOfWork.ProductAttributeValueRepository.SaveChangesAsync();
+				_logger.LogInfo($"Xóa thông tin thuộc tính của sản phẩm với id {productId} thành công.");
+
+				var orderItems = await _unitOfWork.OrderDetailRepository
+					.FindByCondition(oi => oi.ProductId == productId)
+					.ToListAsync();
+
+				_unitOfWork.OrderDetailRepository.RemoveRange(orderItems);
+				await _unitOfWork.OrderDetailRepository.SaveChangesAsync();
+				_logger.LogInfo($"Xóa thông tin đơn hàng của sản phẩm với id {productId} thành công.");
+
 				_productRepository.Remove(existingProduct);
 				await _productRepository.SaveChangesAsync();
 				await _unitOfWork.CommitAsync();

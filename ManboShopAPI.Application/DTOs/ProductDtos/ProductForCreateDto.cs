@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ManboShopAPI.Application.DTOs.AttributeDtos;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -37,5 +38,6 @@ namespace ManboShopAPI.Application.DTOs.ProductDtos
 		public int? BrandId { get; set; }
 		[Required(ErrorMessage = "Hình ảnh sản phẩm không được để trống, bạn nên upload ít nhất 1 và nhiều nhất là 5 hình ảnh")]
 		public List<IFormFile> Images { get; set; }
-	}
+        public ICollection<AttributeForCreateDto> AttributeForCreateDtos { get; set; } = new List<AttributeForCreateDto>();
+    }
 }
