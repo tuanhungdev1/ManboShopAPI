@@ -1,0 +1,19 @@
+﻿using ManboShopAPI.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ManboShopAPI.Application.DTOs.AttributeDtos
+{
+	public class AttributeForCreateDto
+	{
+		[Required(ErrorMessage = "Tên thuộc tính không được để trống")]
+		[MaxLength(200, ErrorMessage = "Tên thuộc tính không thể vượt quá 200 kí tự")]
+		public string Name { get; set; }
+		[Required(ErrorMessage = "Giá trị thuộc tính không được để trống")]
+		public string Value { get; set; }
+	}
+}

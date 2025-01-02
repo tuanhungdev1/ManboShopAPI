@@ -2,19 +2,13 @@
 using ManboShopAPI.Application.UnitOfWork;
 using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Interfaces;
-using ManboShopAPI.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 {
-    public class UnitOfWork : IUnitOfWork, IAsyncDisposable
+	public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     {
         private readonly ApplicationDbContext _context;
         private IDbContextTransaction? _transaction;
@@ -30,8 +24,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         private readonly Lazy<ICartItemRepository> _cartItemRepository;
         private readonly Lazy<ICartRepository> _cartRepository;
         private readonly Lazy<IOrderDetailRepository> _orderDetailRepository;
+        private readonly Lazy<IAttributeRepository> _attributeRepository;
         private readonly Lazy<OrderRepository> _orderRepository;
-
+        private readonly Lazy<IProductAttributeValueRepository> _productAttributeValueRepository;
 		public UnitOfWork(ApplicationDbContext context,
                           UserManager<User> userManager
         )
@@ -48,6 +43,8 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
             _cartRepository = new Lazy<ICartRepository>(() => new CartRepository(_context));
             _orderDetailRepository = new Lazy<IOrderDetailRepository>(() => new OrderDetailRepository(_context));
             _orderRepository = new Lazy<OrderRepository>(() => new OrderRepository(_context));
+            _attributeRepository = new Lazy<IAttributeRepository>(() => new AttributeRepository(_context));
+            _productAttributeValueRepository = new Lazy<IProductAttributeValueRepository>(() => new ProductAttributeValueRepository(_context));
         }
 
         public IBrandRepository BrandRepository => _brandRepository.Value;
@@ -61,6 +58,8 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         public ICartRepository CartRepository => _cartRepository.Value;
         public IOrderDetailRepository OrderDetailRepository => _orderDetailRepository.Value;
         public IOrderRepository OrderRepository => _orderRepository.Value;
+        public IAttributeRepository AttributeRepository => _attributeRepository.Value;
+        public IProductAttributeValueRepository ProductAttributeValueRepository => _productAttributeValueRepository.Value;
 
         public async Task BeginTransactionAsync()
         {
