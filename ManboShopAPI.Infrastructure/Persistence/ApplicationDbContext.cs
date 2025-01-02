@@ -38,6 +38,8 @@ namespace ManboShopAPI.Infrastructure.Persistence
         public DbSet<CouponCondition> CouponConditions { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Attributes> Attributes { get; set; }
+        public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -75,6 +77,8 @@ namespace ManboShopAPI.Infrastructure.Persistence
 			modelBuilder.ApplyConfiguration(new CartItemConfiguration());
 
 			modelBuilder.ApplyConfiguration(new CartConfiguration());
+
+			modelBuilder.ApplyConfiguration(new ProductAttributeValueConfiguration());
 
 		}
 	}
