@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Domain.Entities
 {
@@ -42,5 +37,6 @@ namespace ManboShopAPI.Domain.Entities
 		public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
         public ICollection<ProductAttributeValue> ProductAttributeValues { get; set; } = new List<ProductAttributeValue>();
+        public ICollection<ProductVariantValue> ProductVariantValues { get; set; } = new List<ProductVariantValue>();
     }
 }

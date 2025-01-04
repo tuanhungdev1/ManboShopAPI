@@ -1,7 +1,5 @@
 ﻿using ManboShopAPI.Application.Common.Response;
 using ManboShopAPI.Application.Contracts;
-using ManboShopAPI.Application.DTOs.TokenDtos;
-using ManboShopAPI.Application.DTOs.UserDtos;
 using ManboShopAPI.Application.DTOs.VerificationDtos;
 using ManboShopAPI.Filters;
 using Microsoft.AspNetCore.Mvc;

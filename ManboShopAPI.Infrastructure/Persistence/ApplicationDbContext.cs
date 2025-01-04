@@ -40,6 +40,9 @@ namespace ManboShopAPI.Infrastructure.Persistence
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Attributes> Attributes { get; set; }
         public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
+		public DbSet<Variant> Variants { get; set; }
+		public DbSet<VariantValue> VariantValues { get; set; }
+		public DbSet<ProductVariantValue> ProductVariantValues { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -79,6 +82,10 @@ namespace ManboShopAPI.Infrastructure.Persistence
 			modelBuilder.ApplyConfiguration(new CartConfiguration());
 
 			modelBuilder.ApplyConfiguration(new ProductAttributeValueConfiguration());
+
+			modelBuilder.ApplyConfiguration(new ProductVariantValueConfiguration());
+
+			modelBuilder.ApplyConfiguration(new VariantValueConfiguration());
 
 		}
 	}
