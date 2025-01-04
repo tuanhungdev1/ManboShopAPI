@@ -1,16 +1,9 @@
 ﻿using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.Interfaces;
-using ManboShopAPI.Application.Mappings;
 using ManboShopAPI.Application.Services;
 using ManboShopAPI.Domain.Interfaces;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application
 {
@@ -34,6 +27,8 @@ namespace ManboShopAPI.Application
 			services.AddScoped<ICartItemService, CartItemService>();
 			services.AddScoped<IAuthService, AuthService>();
 			services.AddScoped<IFeedbackService, FeedbackService>();
+			services.AddScoped<IEmailSender, EmailSender>();
+			services.AddScoped<IVerificationService, VerificationService>();
 			// Đăng ký AutoMapper
 			services.AddAutoMapper(Assembly.GetExecutingAssembly());
 			

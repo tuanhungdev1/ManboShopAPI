@@ -122,11 +122,11 @@ public class AuthService : IAuthService
 				throw new UserBadRequestException("Tên đăng nhập hoặc mật khẩu không chính xác.");
 			}
 
-			_user = user;
+			
 			var userDto = _mapper.Map<UserDto>(user);
 			userDto.Roles = await _userManager.GetRolesAsync(user);
 
-			var tokenDto = await GenerateTokensAsync(true);
+			var tokenDto = await GenerateAndAssignTokensAsync(user);
 
 			_logger.LogInfo($"Người dùng {user.UserName} đăng nhập thành công");
 
@@ -181,6 +181,50 @@ public class AuthService : IAuthService
 		}
 	}
 
+	public async Task<TokenDto> GenerateAndAssignTokensAsync(User user)
+	{
+		return await GenerateTokensForUserAsync(user, true);
+	}
+
+	private async Task<TokenDto> GenerateTokensForUserAsync(User user, bool updateRefreshToken)
+	{
+		var signingCredentials = GetSigningCredentials();
+		var claims = await GetClaimsForUserAsync(user);
+		var tokenOptions = GenerateTokenOptions(signingCredentials, claims);
+		var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+		var refreshToken = user.RefreshToken;
+
+		if (updateRefreshToken)
+		{
+			refreshToken = GenerateRefreshToken();
+			var jwtSettings = _configuration.GetSection("JwtSettings");
+			var expires = DateTimeOffset.Now.AddDays(Convert.ToDouble(jwtSettings["RefreshTokenExpiryDays"]));
+
+			user.RefreshToken = refreshToken;
+			user.RefreshTokenExpiryTime = expires.UtcDateTime;
+			await _userManager.UpdateAsync(user);
+			await _unitOfWork.SaveChangesAsync();
+		}
+
+		return new TokenDto
+		{
+			AccessToken = accessToken,
+			RefreshToken = user.RefreshToken!
+		};
+	}
+
+	private async Task<List<Claim>> GetClaimsForUserAsync(User user)
+	{
+		var claimsBuilder = new ClaimsBuilder(user)
+			.AddUsername()
+			.AddEmail()
+			.AddUserId()
+			.AddFirstname()
+			.AddLastname();
+
+		await claimsBuilder.AddRolesAsync(_userManager);
+		return claimsBuilder.Build();
+	}
 	private async Task<TokenDto> GenerateTokensAsync(bool updateRefreshToken)
 	{
 		var signingCredentials = GetSigningCredentials();
