@@ -7,6 +7,7 @@ namespace ManboShopAPI.Domain.Entities
 		[Required]
 		[MaxLength(100)]
         public string Name { get; set; }
+        public string? ImageUrl { get; set; }
         public ICollection<VariantValue> VariantValues { get; set; } = new List<VariantValue>();
     }
 }

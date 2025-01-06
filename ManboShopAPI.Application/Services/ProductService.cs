@@ -3,6 +3,7 @@ using ManboShopAPI.Application.Common.Constants;
 using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.ProductDtos;
+using ManboShopAPI.Application.DTOs.VariantDtos;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Application.UnitOfWork;
 using ManboShopAPI.Domain.Entities;
@@ -10,7 +11,6 @@ using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using ManboShopAPI.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Net.WebSockets;
 
 namespace ManboShopAPI.Application.Services
 {
@@ -183,6 +183,7 @@ namespace ManboShopAPI.Application.Services
 					await _productImageRepository.SaveChangesAsync();
 					_logger.LogInfo($"Thêm thuộc tính cho sản phẩm '{product.Name}' thành công.");
 				}
+				//Sử lý Variants
 
 				var newProduct = await _productRepository
 								.FindByCondition(p => p.Id == product.Id)
@@ -439,6 +440,11 @@ namespace ManboShopAPI.Application.Services
 				_logger.LogError($"Không tìm thấy thương hiệu với id {brandId}");
 				throw new BrandNotFoundException(brandId.Value);
 			}
+		}
+
+		private async Task AddProductVariantAsync(VariantForCreateDto variantForCreateDto)
+		{
+			var existingVariantName = await 
 		}
 	}
 }

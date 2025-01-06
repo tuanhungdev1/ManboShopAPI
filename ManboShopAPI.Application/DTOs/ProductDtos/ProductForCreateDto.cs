@@ -1,11 +1,8 @@
 ﻿using ManboShopAPI.Application.DTOs.AttributeDtos;
+using ManboShopAPI.Application.DTOs.VariantDtos;
+using ManboShopAPI.Application.DTOs.VariantValueDto;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application.DTOs.ProductDtos
 {
@@ -37,7 +34,9 @@ namespace ManboShopAPI.Application.DTOs.ProductDtos
 
 		public int? BrandId { get; set; }
 		[Required(ErrorMessage = "Hình ảnh sản phẩm không được để trống, bạn nên upload ít nhất 1 và nhiều nhất là 5 hình ảnh")]
-		public List<IFormFile> Images { get; set; }
+		public List<IFormFile> Images { get; set; } = new List<IFormFile>();
         public ICollection<AttributeForCreateDto> AttributeForCreateDtos { get; set; } = new List<AttributeForCreateDto>();
+        public ICollection<VariantForCreateDto> Variants { get; set; } = new List<VariantForCreateDto>();
+        public ICollection<VariantValueForCreateDto> VariantValues { get; set; } = new List<VariantValueForCreateDto>();
     }
 }
