@@ -1,10 +1,4 @@
 ﻿using ManboShopAPI.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application.DTOs.CategoryDtos
 {
@@ -13,8 +7,9 @@ namespace ManboShopAPI.Application.DTOs.CategoryDtos
         public int Id { get; set; }
 		public string Name { get; set; }
 		public string? ImageUrl { get; set; }
-		//public ICollection<Product> Products { get; set; } = new List<Product>();
+		public int? ParentCategoryId { get; set; }
+		public ICollection<CategoryDto> SubCategories { get; set; } 
 		public DateTime CreatedAt { get; set; }
-		public DateTime? UpdatedAt { get; set; }
-	}
+        public DateTime? UpdatedAt { get; set; }
+    }
 }

@@ -120,6 +120,22 @@ namespace ManboShopAPI.Controllers
 					Data = category
 				});
 		}
+
+		[HttpPost("subcategories")]
+		[ValidationFilter]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		public async Task<IActionResult> CreateSubCategories([FromBody] SubCategoriesForCreateDto subCategoriesForCreateDto)
+		{
+			await _categoryService.CreateChildCategoriesAsync(subCategoriesForCreateDto.ParentCategoryId, subCategoriesForCreateDto.ChildCategoryNames);
+
+			return StatusCode(201, new ApiResponse<object>
+			{
+				StatusCode = 201,
+				Success = true,
+				Message = "Tạo danh sách các category con thành công."
+			});
 		}
+	}
 	
 }

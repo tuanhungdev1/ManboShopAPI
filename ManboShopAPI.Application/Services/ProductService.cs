@@ -122,15 +122,14 @@ namespace ManboShopAPI.Application.Services
 
 				var product = _mapper.Map<Product>(productDto);
 				await _productRepository.AddAsync(product);
-				await _productRepository.SaveChangesAsync();
+				
 
 				if(productDto.Images != null && productDto.Images.Any())
 				{
-					string folder = $"ManboShopAPI/{FileConstants.FoldersName.Products}/PRODUCT_{product.Id}/";
-
+					string folder = FileConstants.GetFullPath("products", $"PRODUCT_{product.Id}/");
 					foreach(var image in productDto.Images)
 					{
-						string imageUrl = await _cloudinaryService.UploadImageAsync(image, folder, $"{FileConstants.FileName.ProductImage}_{product.Id}");
+						string imageUrl = await _cloudinaryService.UploadImageAsync(image, folder, $"{FileConstants.FileNames.ProductImage}_{product.Id}");
 
 						var productImage = new ProductImage
 						{
@@ -255,10 +254,11 @@ namespace ManboShopAPI.Application.Services
 					}
 
 					// Upload ảnh mới
-					string folder = $"ManboShopAPI/{FileConstants.FoldersName.Products}/PRODUCT_{existingProduct.Id}/";
+					
+					string folder = FileConstants.GetFullPath("products", $"PRODUCT_{existingProduct.Id}/");
 					foreach (var image in productDto.Images)
 					{
-						string imageUrl = await _cloudinaryService.UploadImageAsync(image, folder, $"{FileConstants.FileName.ProductImage}_{existingProduct.Id}");
+						string imageUrl = await _cloudinaryService.UploadImageAsync(image, folder, $"{FileConstants.FileNames.ProductImage}_{existingProduct.Id}");
 						var productImage = new ProductImage
 						{
 							ProductId = existingProduct.Id,
@@ -442,9 +442,6 @@ namespace ManboShopAPI.Application.Services
 			}
 		}
 
-		private async Task AddProductVariantAsync(VariantForCreateDto variantForCreateDto)
-		{
-			var existingVariantName = await 
-		}
+		
 	}
 }

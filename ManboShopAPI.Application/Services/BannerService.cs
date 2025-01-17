@@ -65,11 +65,11 @@ namespace ManboShopAPI.Application.Services
 				}
 
 				// Upload image to Cloudinary
-				string folder = $"ManboShopAPI/{FileConstants.FoldersName.Banners}/";
+				string folder = FileConstants.GetFullPath("banners", null);
 				string imageUrl = await _cloudinaryService.UploadImageAsync(
 					bannerForCreateDto.BannerImage,
 					folder,
-					FileConstants.FileName.BannerImage);
+					FileConstants.FileNames.BannerImage);
 
 				var banner = _mapper.Map<Banner>(bannerForCreateDto);
 				banner.ImageUrl = imageUrl;
@@ -113,13 +113,12 @@ namespace ManboShopAPI.Application.Services
 					throw new BannerBadRequestException($"Banner {bannerForUpdateDto.Name} đã tồn tại trong hệ thống.");
 				}
 
-				// Update image if provided
+				
 				if (bannerForUpdateDto.BannerImage != null)
 				{
-					string folder = $"ManboShopAPI/{FileConstants.FoldersName.Banners}/";
+					string folder = FileConstants.GetFullPath("banners", null);
 					string oldPublicId = _cloudinaryService.GetPublicIdFromUrl(existingBanner.ImageUrl);
 
-					// Xóa hình ảnh cũ trên Cloudinary
 					if (!string.IsNullOrEmpty(oldPublicId))
 					{
 						await _cloudinaryService.DeleteImageAsync(oldPublicId);
@@ -130,7 +129,7 @@ namespace ManboShopAPI.Application.Services
 					string newImageUrl = await _cloudinaryService.UploadImageAsync(
 						bannerForUpdateDto.BannerImage,
 						folder,
-						FileConstants.FileName.BannerImage);
+						FileConstants.FileNames.BannerImage);
 					existingBanner.ImageUrl = newImageUrl;
 
 					_logger.LogInfo("Upload File Banner lên Cloudinary thành công");

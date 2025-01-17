@@ -12,6 +12,6 @@ namespace ManboShopAPI.Application.DTOs.CategoryDtos
 		[Required(ErrorMessage = "Tên danh mục không được để trống")]
 		[MaxLength(100, ErrorMessage = "Tên danh mục không được vượt quá 100 ký tự")]
 		public string Name { get; set; }
-		public string? ImageUrl { get; set; }
+		public int? ParentCategoryId { get; set; }
 	}
 }

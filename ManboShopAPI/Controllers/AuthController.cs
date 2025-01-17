@@ -69,7 +69,7 @@ public class AuthController : ControllerBase
 		var (userDto, tokenDto) = await _authService.LoginAsync(loginDto);
 		var token = new Token
 		{
-			AssessToken = tokenDto.AccessToken,
+			AccessToken = tokenDto.AccessToken,
 			RefreshToken = tokenDto.RefreshToken
 		};
 		return Ok(new ApiResponse<object>
@@ -107,7 +107,7 @@ public class AuthController : ControllerBase
 		var newToken = await _authService.RefreshTokenAsync(tokenDto);
 		var token = new Token
 		{
-			AssessToken = newToken.AccessToken,
+			AccessToken = newToken.AccessToken,
 			RefreshToken = newToken.RefreshToken
 		};
 		return Ok(new ApiResponse<object>

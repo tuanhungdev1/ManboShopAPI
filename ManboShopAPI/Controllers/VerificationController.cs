@@ -46,7 +46,7 @@ namespace ManboShopAPI.Controllers
 			
 			var token = new Token
 			{
-				AssessToken = tokenDto.AccessToken,
+				AccessToken = tokenDto.AccessToken,
 				RefreshToken = tokenDto.RefreshToken
 			};
 			return Ok(new ApiResponse<object>

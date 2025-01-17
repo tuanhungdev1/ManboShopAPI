@@ -20,7 +20,14 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 		public async Task<PagedList<Category>> FetchAllCategoriesWithPaging(CategoryRequestParameters categoryRequestParameters)
 		{
-			var query = _context.Categories.AsNoTracking().AsQueryable();
+			var query = _context.Categories
+				.Include(c => c.SubCategories)
+				.ThenInclude(sc => sc.SubCategories)
+				.ThenInclude(sc => sc.SubCategories)
+				.ThenInclude(sc => sc.SubCategories)
+				.ThenInclude(sc => sc.SubCategories)
+				.ThenInclude(sc => sc.SubCategories)
+				.AsNoTracking().AsQueryable();
 
 			if(!string.IsNullOrWhiteSpace(categoryRequestParameters.SearchTerm))
 			{

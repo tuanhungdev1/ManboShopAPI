@@ -9,7 +9,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 	{
 		public void Configure(EntityTypeBuilder<Brand> builder)
 		{
-			builder.HasData(GetPreconfiguredBrands());
+			
 		}
 
 		private List<Brand> GetPreconfiguredBrands()
