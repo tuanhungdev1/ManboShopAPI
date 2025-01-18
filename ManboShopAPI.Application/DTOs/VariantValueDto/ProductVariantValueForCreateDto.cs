@@ -2,7 +2,7 @@
 
 namespace ManboShopAPI.Application.DTOs.VariantValueDto
 {
-	public class VariantValueForCreateDto
+	public class ProductVariantValueForCreateDto
 	{
 		[Required(ErrorMessage = "Biến thể kết hợp là bắt buộc.")]
 		public List<string> VariantCombination { get; set; } = new List<string>();

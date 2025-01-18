@@ -3,7 +3,6 @@ using ManboShopAPI.Application.Common.Constants;
 using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.ProductDtos;
-using ManboShopAPI.Application.DTOs.VariantDtos;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Application.UnitOfWork;
 using ManboShopAPI.Domain.Entities;
@@ -24,8 +23,14 @@ namespace ManboShopAPI.Application.Services
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IMapper _mapper;
 		private readonly ILoggerService _logger;
+		private readonly IVariantRepository _variantRepository;
+		private readonly IVariantValueRepository _variantValueRepository;
+		private readonly IProductVariantValueRepository _productVariantValueRepository;
 
 		public ProductService(
+			IProductVariantValueRepository productVariantValueRepository,
+			IVariantValueRepository variantValueRepository,
+			IVariantRepository variantRepository,
 			IProductRepository productRepository,
 			ICloudinaryService cloudinaryService,
 			ICategoryRepository categoryRepository,
@@ -35,6 +40,8 @@ namespace ManboShopAPI.Application.Services
 			IMapper mapper,
 			ILoggerService logger)
 		{
+			_productVariantValueRepository = productVariantValueRepository;
+			_variantValueRepository = variantValueRepository;
 			_productRepository = productRepository;
 			_categoryRepository = categoryRepository;
 			_brandRepository = brandRepository;
@@ -43,6 +50,7 @@ namespace ManboShopAPI.Application.Services
 			_productImageRepository = productImageRepository;
 			_mapper = mapper;
 			_logger = logger;
+			_variantRepository = variantRepository;
 		}
 
 		public async Task<(IEnumerable<ProductDto> products, MetaData metaData)> GetAllProductsAsync(ProductRequestParameters productRequestParameters)
@@ -182,7 +190,92 @@ namespace ManboShopAPI.Application.Services
 					await _productImageRepository.SaveChangesAsync();
 					_logger.LogInfo($"Thêm thuộc tính cho sản phẩm '{product.Name}' thành công.");
 				}
+
 				//Sử lý Variants
+				foreach(var variant in productDto.Variants)
+				{
+					var productVariant = await _variantRepository.GetOrCreateAsync(
+							v => v.Name == variant.Name,
+							() => new Variant
+							{
+								Name = variant.Name,
+							}
+						);
+					
+					// Sử lý danh sách Variant Value
+					foreach(var variantItem in variant.Values)
+					{
+						var variantValue = new VariantValue
+						{
+							VariantId = productVariant.Id,
+							Value = variantItem.Value,
+							CreatedAt = DateTime.UtcNow,
+						};
+						await _variantValueRepository.AddAsync(variantValue);
+
+						// Upload ảnh cho Image Variant Value
+
+						if(variantItem.FileImage != null)
+						{
+							string folder = FileConstants.GetFullPath("products", $"PRODUCT_{product.Id}/VARIANT_{productVariant.Name}_{productVariant.Id}/");
+							string imageUrl = await _cloudinaryService.UploadImageAsync(variantItem.FileImage, folder, FileConstants.FileNames.ProductVariantImage);
+
+							variantValue.ImageUrl = imageUrl;
+							_logger.LogInfo($"Upload ảnh thành công cho Variant {variantValue}");
+						}
+						await _variantValueRepository.SaveChangesAsync();
+						// Thêm Variant Value vào Variant
+						productVariant.VariantValues.Add(variantValue);
+					}
+					// Sử lý Product Variant Value
+				
+					foreach(var productVariantValue in productDto.VariantValues)
+					{
+
+						if(productVariantValue.VariantCombination.Count() < 2)
+						{
+							_logger.LogInfo("Thiếu giá trị để kết hợp thành một biến thể của sản phẩm");
+							throw new ProductBadRequestException("Thiếu giá trị để kết hợp thành một biến thể của sản phẩm");
+						}
+
+						var variantValueIds = new List<int>();
+						foreach(var variantCombinationItem in productVariantValue.VariantCombination)
+						{
+							var existingVariantValue = await _variantValueRepository
+								.FindByCondition(vv => vv.Value == variantCombinationItem)
+								.FirstOrDefaultAsync();
+							
+							if(existingVariantValue == null)
+							{
+								_logger.LogInfo("Không tìm thấy giá trị của biến thể sản phẩm khi tạo một biến thể sản phẩm");
+								throw new ProductBadRequestException("Không tìm thấy giá trị của biến thể sản phẩm khi tạo một biến thể sản phẩm");
+							}
+
+							variantValueIds.Add(existingVariantValue.Id);
+						}
+
+						// Tạo mã SKU từ Id của giá trị biến thể sản phẩm
+						variantValueIds.Sort((a, b) => a - b);
+						var sku = string.Join("-", variantValueIds);
+
+						var newProductVariantValue = new ProductVariantValue
+						{
+							ProductId = product.Id,
+							OldPrice = productVariantValue.OldPrice,
+							Price = productVariantValue.Price,
+							Stock = productVariantValue.Stock,
+							UpdatedAt = DateTime.UtcNow,
+							Sku = sku,
+							CreatedAt = DateTime.UtcNow,
+						};
+
+						await _productVariantValueRepository.AddAsync(newProductVariantValue);
+						await _productVariantValueRepository.SaveChangesAsync();
+
+						_logger.LogInfo("Tạo mới thành công một biến thể sản phẩm");
+					}
+
+				}
 
 				var newProduct = await _productRepository
 								.FindByCondition(p => p.Id == product.Id)
@@ -191,9 +284,9 @@ namespace ManboShopAPI.Application.Services
 								.Include(p => p.ProductImages)
 								.Include(p => p.ProductAttributeValues)
 								.ThenInclude(pav => pav.Attribute)
+								.Include(p => p.ProductVariantValues)
 								.FirstOrDefaultAsync();
-
-				
+				await _unitOfWork.SaveChangesAsync();
 				await _unitOfWork.CommitAsync();
 				_logger.LogInfo($"Tạo sản phẩm mới '{product.Name}' thành công.");
 				return _mapper.Map<ProductDto>(newProduct);

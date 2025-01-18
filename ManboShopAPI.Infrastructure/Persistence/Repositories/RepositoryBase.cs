@@ -83,6 +83,22 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 			await _context.SaveChangesAsync();
 		}
 
+		public async Task<T> GetOrCreateAsync(
+			Expression<Func<T, bool>> predicate,
+			Func<T> createNew)
+		{
+			var entity = await _context.Set<T>()
+									  .FirstOrDefaultAsync(predicate);
+
+			if (entity == null)
+			{
+				entity = createNew();
+				await _context.Set<T>().AddAsync(entity);
+				await _context.SaveChangesAsync();
+			}
+
+			return entity;
+		}
 
 	}
 }

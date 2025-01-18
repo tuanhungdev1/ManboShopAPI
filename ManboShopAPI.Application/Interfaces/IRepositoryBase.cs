@@ -9,6 +9,9 @@ namespace ManboShopAPI.Domain.Interfaces
 {
 	public interface IRepositoryBase<T> where T : class
 	{
+		Task<T> GetOrCreateAsync(
+			Expression<Func<T, bool>> predicate,
+			Func<T> createNew);
 		Task<T?> GetByIdAsync(int id, bool asNoTracking = false);
 		Task<IEnumerable<T>> GetAllAsync(bool asNoTracking);
 		Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false);

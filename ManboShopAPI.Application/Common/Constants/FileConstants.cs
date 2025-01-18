@@ -22,6 +22,7 @@ namespace ManboShopAPI.Application.Common.Constants
 			public const string CategoryImage = "category_img";
 			public const string BrandImage = "brand_img";
 			public const string BannerImage = "banner_img";
+			public const string ProductVariantImage = "product_variant_img";
 		}
 
 		

@@ -37,6 +37,6 @@ namespace ManboShopAPI.Application.DTOs.ProductDtos
 		public List<IFormFile> Images { get; set; } = new List<IFormFile>();
         public ICollection<AttributeForCreateDto> AttributeForCreateDtos { get; set; } = new List<AttributeForCreateDto>();
         public ICollection<VariantForCreateDto> Variants { get; set; } = new List<VariantForCreateDto>();
-        public ICollection<VariantValueForCreateDto> VariantValues { get; set; } = new List<VariantValueForCreateDto>();
+        public ICollection<ProductVariantValueForCreateDto> VariantValues { get; set; } = new List<ProductVariantValueForCreateDto>();
     }
 }
