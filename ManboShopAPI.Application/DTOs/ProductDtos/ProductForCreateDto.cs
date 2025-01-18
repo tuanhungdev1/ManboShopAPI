@@ -35,8 +35,11 @@ namespace ManboShopAPI.Application.DTOs.ProductDtos
 		public int? BrandId { get; set; }
 		[Required(ErrorMessage = "Hình ảnh sản phẩm không được để trống, bạn nên upload ít nhất 1 và nhiều nhất là 5 hình ảnh")]
 		public List<IFormFile> Images { get; set; } = new List<IFormFile>();
-        public ICollection<AttributeForCreateDto> AttributeForCreateDtos { get; set; } = new List<AttributeForCreateDto>();
-        public ICollection<VariantForCreateDto> Variants { get; set; } = new List<VariantForCreateDto>();
-        public ICollection<ProductVariantValueForCreateDto> VariantValues { get; set; } = new List<ProductVariantValueForCreateDto>();
+		[Required(ErrorMessage = "Thuộc tính sản phẩm không được để trống")]
+		public ICollection<AttributeForCreateDto> AttributeForCreateDtos { get; set; } = new List<AttributeForCreateDto>();
+		[Required(ErrorMessage = "Biến thể sản phẩm không được để trống")]
+		public ICollection<VariantForCreateDto> Variants { get; set; } = new List<VariantForCreateDto>();
+		[Required(ErrorMessage = "Các giá trị của Biến thể sản phẩm không được để trống")]
+		public ICollection<ProductVariantValueForCreateDto> VariantValues { get; set; } = new List<ProductVariantValueForCreateDto>();
     }
 }
