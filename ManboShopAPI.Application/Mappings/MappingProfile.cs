@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ManboShopAPI.Application.DTOs.AddressDtos;
+using ManboShopAPI.Application.DTOs.AttributeDtos;
 using ManboShopAPI.Application.DTOs.BannerDetailDtos;
 using ManboShopAPI.Application.DTOs.BannerDtos;
 using ManboShopAPI.Application.DTOs.BrandDtos;
@@ -15,6 +16,8 @@ using ManboShopAPI.Application.DTOs.OrderDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.DTOs.ProductImageDtos;
 using ManboShopAPI.Application.DTOs.UserDtos;
+using ManboShopAPI.Application.DTOs.VariantDtos;
+using ManboShopAPI.Application.Mappings.MapperResolver;
 using ManboShopAPI.Domain.Entities;
 
 namespace ManboShopAPI.Application.Mappings
@@ -43,8 +46,39 @@ namespace ManboShopAPI.Application.Mappings
 
 			//PRODUCT
 			CreateMap<Product, ProductDto>()
-				.ForMember(dest => dest.CategoryName, opt => opt.MapFrom(p => p.Category.Name))
-				.ForMember(dest => dest.BrandName, opt => opt.MapFrom(p => p.Brand.Name));
+				.ForMember(dest => dest.Category, opt =>
+				opt.MapFrom(src => src.Category))
+			.ForMember(dest => dest.Brand, opt =>
+				opt.MapFrom(src => src.Brand))
+			.ForMember(dest => dest.ProductImages, opt =>
+				opt.MapFrom(src => src.ProductImages))
+			.ForMember(dest => dest.Attributes, opt =>
+				opt.MapFrom(src => src.ProductAttributeValues))
+			.ForMember(dest => dest.VariantValues, opt =>
+				opt.MapFrom(src => src.ProductVariantValues));
+
+			CreateMap<ProductAttributeValue, ProductAttributeValueDto>()
+			.ForMember(dest => dest.Name, opt =>
+				opt.MapFrom(src => src.Attribute.Name))
+			.ForMember(dest => dest.Value, opt =>
+				opt.MapFrom(src => src.Value));
+
+			CreateMap<Variant, ProductVariantDto>();
+			CreateMap<VariantValue, VariantValueDto>();
+
+			CreateMap<ProductVariantValue, ProductVariantValueDto>()
+			.ForMember(dest => dest.VariantCombination, opt =>
+				opt.MapFrom<VariantCombinationResolver>())
+			.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+			.ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.Sku))
+			.ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
+			.ForMember(dest => dest.OldPrice, opt => opt.MapFrom(src => src.OldPrice))
+			.ForMember(dest => dest.Stock, opt => opt.MapFrom(src => src.Stock))
+			.ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+			.ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
+
+
+
 			CreateMap<ProductForCreateDto, Product>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			CreateMap<ProductForUpdateDto, Product>()

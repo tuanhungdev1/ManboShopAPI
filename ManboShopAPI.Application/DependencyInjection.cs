@@ -1,6 +1,11 @@
-﻿using ManboShopAPI.Application.Contracts;
+﻿using AutoMapper;
+using ManboShopAPI.Application.Contracts;
+using ManboShopAPI.Application.DTOs.VariantDtos;
+using ManboShopAPI.Application.DTOs.VariantValueDto;
 using ManboShopAPI.Application.Interfaces;
+using ManboShopAPI.Application.Mappings.MapperResolver;
 using ManboShopAPI.Application.Services;
+using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -34,6 +39,10 @@ namespace ManboShopAPI.Application
 			
 			// Đăng ký Validators
 			services.AddHttpContextAccessor();
+
+
+			// Đăng ký Resolver
+			services.AddScoped<IValueResolver<ProductVariantValue, ProductVariantValueDto, ICollection<ProductVariantDetailDto>>, VariantCombinationResolver>();
 
 			return services;
 		}

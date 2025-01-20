@@ -115,5 +115,70 @@ namespace ManboShopAPI.Application.Services
 				return null;
 			}
 		}
+
+		public async Task DeleteImagesAsync(List<string> imageUrls)
+		{
+			if (imageUrls == null || !imageUrls.Any())
+				return;
+
+			var failedDeletions = new List<string>();
+
+			foreach (var imageUrl in imageUrls)
+			{
+				try
+				{
+					var publicId = GetPublicIdFromUrl(imageUrl);
+					if (string.IsNullOrEmpty(publicId))
+					{
+						_logger.LogError($"Không thể lấy được PublicId từ URL: {imageUrl}");
+						failedDeletions.Add(imageUrl);
+						continue;
+					}
+
+					var deleteParams = new DeletionParams(publicId);
+					var result = await _cloudinary.DestroyAsync(deleteParams);
+
+					if (result.Error != null)
+					{
+						_logger.LogError($"Lỗi khi xóa ảnh với PublicId: {publicId}, Error: {result.Error.Message}");
+						failedDeletions.Add(imageUrl);
+					}
+					else
+					{
+						_logger.LogInfo($"Đã xóa thành công ảnh với PublicId: {publicId}");
+					}
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError($"Lỗi không mong muốn khi xóa ảnh URL: {imageUrl}, Error: {ex.Message}");
+					failedDeletions.Add(imageUrl);
+				}
+			}
+
+			if (failedDeletions.Any())
+			{
+				_logger.LogWarning($"Có {failedDeletions.Count} ảnh không thể xóa khỏi Cloudinary");
+				foreach (var url in failedDeletions)
+				{
+					_logger.LogWarning($"URL ảnh không thể xóa: {url}");
+				}
+			}
+		}
+
+		// Thêm phương thức để upload an toàn với tracking URLs
+		public async Task<(string imageUrl, bool success)> SafeUploadImageAsync(IFormFile file, string folder, string prefix)
+		{
+			try
+			{
+				var imageUrl = await UploadImageAsync(file, folder, prefix);
+				return (imageUrl, true);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError($"Lỗi khi upload ảnh: {ex.Message}");
+				return (null, false);
+			}
+		}
+
 	}
 }

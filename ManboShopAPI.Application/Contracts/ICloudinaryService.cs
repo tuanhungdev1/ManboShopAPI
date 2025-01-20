@@ -14,7 +14,8 @@ namespace ManboShopAPI.Application.Contracts
 		Task<string> ReplaceImageAsync(IFormFile newFile, string oldPublicId, string folder, string prefix);
 		string GetPublicIdFromUrl(string imageUrl);
 
-		// New multiple image methods
+		Task DeleteImagesAsync(List<string> imageUrls);
+	
 
 	}
 }

@@ -69,6 +69,9 @@ namespace ManboShopAPI.Application.Services
 							.Include(p => p.Category)
 							.Include(p => p.Brand)
 							.Include(p => p.ProductImages)
+							.Include(p => p.ProductAttributeValues)
+								.ThenInclude(pav => pav.Attribute)
+							.Include(p => p.ProductVariantValues)
 							.FirstOrDefaultAsync();
 			if (product == null)
 			{
@@ -285,8 +288,6 @@ namespace ManboShopAPI.Application.Services
 					Name = product.Name,
 					Description = product.Description,
 					Price = product.Price,
-					CategoryId = product.CategoryId,
-					BrandId = product.BrandId,
 					ProductImages = productImageDtos.ToList(),
 					CreatedAt = product.CreatedAt,
 					UpdatedAt = product.UpdatedAt
