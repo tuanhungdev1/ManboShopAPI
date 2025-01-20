@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ManboShopAPI.Application.Contracts;
+using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.DTOs.VariantDtos;
 using ManboShopAPI.Application.DTOs.VariantValueDto;
 using ManboShopAPI.Application.Interfaces;
@@ -43,7 +44,7 @@ namespace ManboShopAPI.Application
 
 			// Đăng ký Resolver
 			services.AddScoped<IValueResolver<ProductVariantValue, ProductVariantValueDto, ICollection<ProductVariantDetailDto>>, VariantCombinationResolver>();
-
+			services.AddScoped<IValueResolver<Product, ProductDto, ICollection<ProductVariantDto>>, ProductVariantsResolver>();
 			return services;
 		}
 	}

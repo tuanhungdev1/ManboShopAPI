@@ -9,5 +9,6 @@ namespace ManboShopAPI.Application.Interfaces
 		Task<IEnumerable<Variant>> GetAllVariantsWithValuesAsync();
 		Task<bool> IsNameExistAsync(string name);
 		Task<bool> IsNameExistAsync(string name, int excludeId);
+		ICollection<Variant> GetVariantsWithValuesByValueIds(IEnumerable<int> variantValueIds);
 	}
 }

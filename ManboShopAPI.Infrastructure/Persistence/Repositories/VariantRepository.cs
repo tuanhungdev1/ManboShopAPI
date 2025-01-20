@@ -76,6 +76,14 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 			return (variants, totalCount);
 		}
+
+		public ICollection<Variant> GetVariantsWithValuesByValueIds(IEnumerable<int> variantValueIds)
+		{
+			return _context.Variants
+				.Include(v => v.VariantValues)
+				.Where(v => v.VariantValues.Any(vv => variantValueIds.Contains(vv.Id)))
+				.ToList();
+		}
 	}
 }
 

@@ -46,6 +46,10 @@ namespace ManboShopAPI.Application.Mappings
 
 			//PRODUCT
 			CreateMap<Product, ProductDto>()
+				.ForMember(dest => dest.Variants, opt =>
+				opt.MapFrom<ProductVariantsResolver>())
+			.ForMember(dest => dest.VariantValues, opt =>
+				opt.MapFrom(src => src.ProductVariantValues))
 				.ForMember(dest => dest.Category, opt =>
 				opt.MapFrom(src => src.Category))
 			.ForMember(dest => dest.Brand, opt =>
@@ -77,7 +81,9 @@ namespace ManboShopAPI.Application.Mappings
 			.ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
 			.ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
 
-
+			CreateMap<Variant, ProductVariantDto>();
+			CreateMap<VariantValue, VariantValueDto>();
+			CreateMap<ProductVariantValue, ProductVariantValueDto>();
 
 			CreateMap<ProductForCreateDto, Product>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
