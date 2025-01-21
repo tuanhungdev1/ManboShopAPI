@@ -1,4 +1,5 @@
 ﻿using ManboShopAPI.Application.DTOs.AttributeDtos;
+using ManboShopAPI.Application.DTOs.VariantDtos;
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
@@ -38,5 +39,8 @@ namespace ManboShopAPI.Application.DTOs.ProductDtos
 		public List<IFormFile>? Images { get; set; }
 
 		public ICollection<AttributeForUpdateDto> AttributeForUpdateDtos { get; set; } = new List<AttributeForUpdateDto>();
+		public ICollection<VariantForUpdateDto> Variants { get; set; } = new List<VariantForUpdateDto>();
+
+		public ICollection<ProductVariantValueForUpdateDto> VariantValues { get; set; } = new List<ProductVariantValueForUpdateDto>();
 	}
 }

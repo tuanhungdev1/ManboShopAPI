@@ -2,14 +2,17 @@
 using ManboShopAPI.Application.Common.Constants;
 using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.Contracts;
+using ManboShopAPI.Application.DTOs.AttributeDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.DTOs.ProductImageDtos;
+using ManboShopAPI.Application.DTOs.VariantDtos;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Application.UnitOfWork;
 using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using ManboShopAPI.Domain.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManboShopAPI.Application.Services
@@ -313,7 +316,9 @@ namespace ManboShopAPI.Application.Services
 
 				var existingProduct = await _productRepository
 					.FindByCondition(p => p.Id == productId)
-					.Include(p => p.ProductImages) // Include ProductImages để lấy danh sách ảnh hiện tại
+					.Include(p => p.ProductImages)
+					.Include(p => p.ProductAttributeValues)
+					.Include(p => p.ProductVariantValues)
 					.FirstOrDefaultAsync();
 
 				if (existingProduct == null)
@@ -324,103 +329,40 @@ namespace ManboShopAPI.Application.Services
 
 				await ValidateProductData(productDto.CategoryId, productDto.BrandId);
 
+				// Kiểm tra trùng tên sản phẩm
 				if (await _productRepository.ProductNameExistsAsync(productDto.Name) &&
 					existingProduct.Name != productDto.Name)
 				{
-					_logger.LogError($"Sản phẩm với tên '{productDto.Name}' đã tồn tại.");
 					throw new ProductBadRequestException($"Sản phẩm với tên '{productDto.Name}' đã tồn tại.");
 				}
 
-				if (productDto.Images != null && productDto.Images.Count > 5)
-				{
-					_logger.LogError("Số lượng hình ảnh vượt quá giới hạn cho phép (tối đa 5 hình)");
-					throw new ProductBadRequestException("Chỉ được phép upload tối đa 5 hình ảnh cho sản phẩm");
-				}
+				// 1. Xử lý cập nhật hình ảnh
+				await UpdateProductImagesAsync(existingProduct, productDto.Images);
 
-				// Xử lý cập nhật hình ảnh
-				if (productDto.Images != null && productDto.Images.Any())
-				{
-					// Xóa các ảnh cũ từ Cloudinary và database
-					if (existingProduct.ProductImages != null)
-					{
-						foreach (var image in existingProduct.ProductImages)
-						{
-							var publicId = _cloudinaryService.GetPublicIdFromUrl(image.ImageUrl);
-							await _cloudinaryService.DeleteImageAsync(publicId);
-							_productImageRepository.Remove(image);
-						}
-						await _productImageRepository.SaveChangesAsync();
-						_logger.LogInfo($"Xóa hình ảnh cũ của sản phẩm '{existingProduct.Name}' thành công.");
-					}
+				// 2. Cập nhật thông tin thuộc tính sản phẩm
+				await UpdateProductAttributesAsync(productId, productDto.AttributeForUpdateDtos);
 
-					// Upload ảnh mới
-					
-					string folder = FileConstants.GetFullPath("products", $"PRODUCT_{existingProduct.Id}/");
-					foreach (var image in productDto.Images)
-					{
-						string imageUrl = await _cloudinaryService.UploadImageAsync(image, folder, $"{FileConstants.FileNames.ProductImage}_{existingProduct.Id}");
-						var productImage = new ProductImage
-						{
-							ProductId = existingProduct.Id,
-							ImageUrl = imageUrl
-						};
-						await _productImageRepository.AddAsync(productImage);
-					}
-					await _productImageRepository.SaveChangesAsync();
-					_logger.LogInfo($"Upload hình ảnh mới cho sản phẩm '{existingProduct.Name}' thành công.");
-				}
+				// 3. Cập nhật variants và variant values
+				await UpdateProductVariantsAsync(productId, productDto.Variants);
 
-				// Cập nhật thông tin sản phẩm
+				// 4. Cập nhật product variant values
+				await UpdateProductVariantValuesAsync(productId, productDto.VariantValues);
+
+				// 5. Cập nhật thông tin cơ bản của sản phẩm
 				_mapper.Map(productDto, existingProduct);
 				existingProduct.UpdatedAt = DateTime.UtcNow;
 				_productRepository.Update(existingProduct);
 				await _productRepository.SaveChangesAsync();
 
-				// Cập nhật thông tin thuộc tính sản phẩm
-
-				var existingProductAttributeValues = await _unitOfWork.ProductAttributeValueRepository
-					.FindByCondition(pav => pav.ProductId == productId)
-					.Include(pav => pav.Attribute)
-					.ToListAsync();
-
-				foreach (var attribute in productDto.AttributeForUpdateDtos)
-				{
-
-					var existingAttribute = existingProductAttributeValues
-						.FirstOrDefault(pav => pav.Attribute.Name == attribute.Name);
-
-					if (existingAttribute != null)
-					{
-						existingAttribute.Value = attribute.Value;
-						_unitOfWork.ProductAttributeValueRepository.Update(existingAttribute);
-					}
-					else
-					{
-						var productAttribute = new Attributes
-						{
-							Name = attribute.Name,
-						};
-
-						await _unitOfWork.AttributeRepository.AddAsync(productAttribute);
-						await _unitOfWork.AttributeRepository.SaveChangesAsync();
-						var productAttributeValue = new ProductAttributeValue
-						{
-							ProductId = productId,
-							AttributeId = productAttribute.Id,
-							Value = attribute.Value
-						};
-
-						await _unitOfWork.ProductAttributeValueRepository.AddAsync(productAttributeValue);
-					}	
-				}
-				await _unitOfWork.ProductAttributeValueRepository.SaveChangesAsync();
-
-				// Lấy thông tin sản phẩm đã cập nhật
+				// 6. Lấy thông tin sản phẩm đã cập nhật
 				var updatedProduct = await _productRepository
 					.FindByCondition(p => p.Id == productId)
 					.Include(p => p.Category)
 					.Include(p => p.Brand)
 					.Include(p => p.ProductImages)
+					.Include(p => p.ProductAttributeValues)
+						.ThenInclude(pav => pav.Attribute)
+					.Include(p => p.ProductVariantValues)
 					.FirstOrDefaultAsync();
 
 				await _unitOfWork.CommitAsync();
@@ -440,63 +382,144 @@ namespace ManboShopAPI.Application.Services
 			try
 			{
 				await _unitOfWork.BeginTransactionAsync();
+
 				var existingProduct = await _productRepository
-								.FindByCondition(p => p.Id == productId)
-								.Include(p => p.ProductImages)
-								.FirstOrDefaultAsync();
+					.FindByCondition(p => p.Id == productId)
+					.Include(p => p.ProductImages)
+					.Include(p => p.ProductAttributeValues)
+					.Include(p => p.ProductVariantValues)
+					.Include(p => p.Favorites)
+					.Include(p => p.NewsDetails)
+					.Include(p => p.BannerDetails)
+					.FirstOrDefaultAsync();
+
 				if (existingProduct == null)
 				{
-					_logger.LogError($"Không tìm thấy sản phẩm với id {productId}");
 					throw new ProductNotFoundException(productId);
 				}
-				
-				if(existingProduct.ProductImages != null)
+
+				// 1. Xóa hình ảnh sản phẩm
+				if (existingProduct.ProductImages?.Any() == true)
 				{
-					foreach(var image in existingProduct.ProductImages)
+					foreach (var image in existingProduct.ProductImages)
 					{
 						var publicId = _cloudinaryService.GetPublicIdFromUrl(image.ImageUrl);
 						await _cloudinaryService.DeleteImageAsync(publicId);
-						_productImageRepository.Remove(image);
 					}
+					_productImageRepository.RemoveRange(existingProduct.ProductImages);
 					await _productImageRepository.SaveChangesAsync();
-					_logger.LogInfo($"Xóa hình ảnh của sản phẩm với id {productId} thành công.");
 				}
-				_logger.LogInfo($"Xóa hình ảnh của sản phẩm với id {productId} thành công.");
 
-
+				// 2. Xóa cart items
 				var cartItems = await _unitOfWork.CartItemRepository
 					.FindByCondition(ci => ci.ProductId == productId)
 					.ToListAsync();
-
 				_unitOfWork.CartItemRepository.RemoveRange(cartItems);
-				await _unitOfWork.CartItemRepository.SaveChangesAsync();
-				_logger.LogInfo($"Xóa thông tin giỏ hàng của sản phẩm với id {productId} thành công.");
 
-				var productAttributeValues = await _unitOfWork.ProductAttributeValueRepository
-					.FindByCondition(pav => pav.ProductId == productId)
+				// 3. Xóa product attributes
+				_unitOfWork.ProductAttributeValueRepository.RemoveRange(existingProduct.ProductAttributeValues);
+
+				// 4. Xóa product variant values
+				_unitOfWork.ProductVariantValueRepository.RemoveRange(existingProduct.ProductVariantValues);
+
+				// 5. Xóa order details
+				var orderDetails = await _unitOfWork.OrderDetailRepository
+					.FindByCondition(od => od.ProductId == productId)
 					.ToListAsync();
+				_unitOfWork.OrderDetailRepository.RemoveRange(orderDetails);
 
-				_unitOfWork.ProductAttributeValueRepository.RemoveRange(productAttributeValues);
-				await _unitOfWork.ProductAttributeValueRepository.SaveChangesAsync();
-				_logger.LogInfo($"Xóa thông tin thuộc tính của sản phẩm với id {productId} thành công.");
+				// 6. Xóa favorites
+				_unitOfWork.FavoriteRepository.RemoveRange(existingProduct.Favorites);
 
-				var orderItems = await _unitOfWork.OrderDetailRepository
-					.FindByCondition(oi => oi.ProductId == productId)
-					.ToListAsync();
+				// 7. Xóa news details
+				_unitOfWork.NewsDetailRepository.RemoveRange(existingProduct.NewsDetails);
 
-				_unitOfWork.OrderDetailRepository.RemoveRange(orderItems);
-				await _unitOfWork.OrderDetailRepository.SaveChangesAsync();
-				_logger.LogInfo($"Xóa thông tin đơn hàng của sản phẩm với id {productId} thành công.");
+				// 8. Xóa banner details
+				_unitOfWork.BannerDetailRepository.RemoveRange(existingProduct.BannerDetails);
 
+				// 9. Xóa sản phẩm
 				_productRepository.Remove(existingProduct);
-				await _productRepository.SaveChangesAsync();
+
+				// 10. Lưu các thay đổi
+				await _unitOfWork.SaveChangesAsync();
 				await _unitOfWork.CommitAsync();
+
 				_logger.LogInfo($"Xóa sản phẩm với id {productId} thành công.");
-			} catch (Exception)
+			}
+			catch (Exception)
 			{
 				await _unitOfWork.RollbackAsync();
 				_logger.LogError($"Xóa sản phẩm với id {productId} thất bại.");
 				throw;
+			}
+		}
+
+		// Các phương thức hỗ trợ
+		private async Task UpdateProductImagesAsync(Product existingProduct, ICollection<IFormFile> newImages)
+		{
+			if (newImages?.Any() == true)
+			{
+				// Xóa ảnh cũ
+				foreach (var image in existingProduct.ProductImages)
+				{
+					var publicId = _cloudinaryService.GetPublicIdFromUrl(image.ImageUrl);
+					await _cloudinaryService.DeleteImageAsync(publicId);
+				}
+				_productImageRepository.RemoveRange(existingProduct.ProductImages);
+				await _productImageRepository.SaveChangesAsync();
+
+				// Upload ảnh mới
+				string folder = FileConstants.GetFullPath("products", $"PRODUCT_{existingProduct.Id}/");
+				foreach (var image in newImages)
+				{
+					string imageUrl = await _cloudinaryService.UploadImageAsync(image, folder,
+						$"{FileConstants.FileNames.ProductImage}_{existingProduct.Id}");
+					await _productImageRepository.AddAsync(new ProductImage
+					{
+						ProductId = existingProduct.Id,
+						ImageUrl = imageUrl
+					});
+				}
+				await _productImageRepository.SaveChangesAsync();
+			}
+		}
+
+		private async Task UpdateProductAttributesAsync(int productId, ICollection<AttributeForUpdateDto> attributes)
+		{
+			if (attributes?.Any() == true)
+			{
+				var existingAttributes = await _unitOfWork.ProductAttributeValueRepository
+					.FindByCondition(pav => pav.ProductId == productId)
+					.Include(pav => pav.Attribute)
+					.ToListAsync();
+
+				foreach (var attributeDto in attributes)
+				{
+					var existingAttribute = existingAttributes
+						.FirstOrDefault(ea => ea.Attribute.Name == attributeDto.Name);
+
+					if (existingAttribute != null)
+					{
+						existingAttribute.Value = attributeDto.Value;
+						_unitOfWork.ProductAttributeValueRepository.Update(existingAttribute);
+					}
+					else
+					{
+						// Tạo attribute mới nếu chưa tồn tại
+						var newAttribute = await _unitOfWork.AttributeRepository
+							.GetOrCreateAsync(a => a.Name == attributeDto.Name,
+								() => new Attributes { Name = attributeDto.Name });
+
+						await _unitOfWork.ProductAttributeValueRepository.AddAsync(
+							new ProductAttributeValue
+							{
+								ProductId = productId,
+								AttributeId = newAttribute.Id,
+								Value = attributeDto.Value
+							});
+					}
+				}
+				await _unitOfWork.ProductAttributeValueRepository.SaveChangesAsync();
 			}
 		}
 
@@ -542,6 +565,167 @@ namespace ManboShopAPI.Application.Services
 			}
 		}
 
-		
+		private async Task UpdateProductVariantsAsync(int productId, ICollection<VariantForUpdateDto> variantDtos)
+		{
+			if (variantDtos?.Any() != true) return;
+
+			var variantValuePairs = new List<(int variantValueId, string value)>();
+
+			// Bước 1: Xử lý và lưu các Variant và VariantValue
+			foreach (var variantDto in variantDtos)
+			{
+				// Lấy hoặc tạo mới variant
+				var variant = await _variantRepository.GetOrCreateAsync(
+					v => v.Name == variantDto.Name,
+					() => new Variant { Name = variantDto.Name }
+				);
+
+				foreach (var valueDto in variantDto.Values)
+				{
+					// Kiểm tra hoặc tạo mới VariantValue
+					var variantValue = await _variantValueRepository.GetOrCreateAsync(
+						vv => vv.VariantId == variant.Id && vv.Value == valueDto.Value,
+						() => new VariantValue
+						{
+							VariantId = variant.Id,
+							Value = valueDto.Value,
+							CreatedAt = DateTime.UtcNow
+						}
+					);
+
+					// Xử lý upload ảnh nếu có
+					if (valueDto.FileImage != null)
+					{
+						if (!string.IsNullOrEmpty(variantValue.ImageUrl))
+						{
+							var publicId = _cloudinaryService.GetPublicIdFromUrl(variantValue.ImageUrl);
+							await _cloudinaryService.DeleteImageAsync(publicId);
+						}
+
+						string folder = FileConstants.GetFullPath("products",
+							$"PRODUCT_{productId}/VARIANT_{variant.Name}_{variant.Id}/");
+						variantValue.ImageUrl = await _cloudinaryService.UploadImageAsync(
+							valueDto.FileImage,
+							folder,
+							FileConstants.FileNames.ProductVariantImage
+						);
+
+						_variantValueRepository.Update(variantValue);
+					}
+
+					variantValuePairs.Add((variantValue.Id, variantValue.Value));
+				}
+			}
+
+			// Bước 2: Tạo combinations từ các VariantValue
+			var combinations = GenerateCombinations(variantValuePairs);
+
+			// Bước 3: Tạo hoặc cập nhật ProductVariantValue cho mỗi combination
+			foreach (var combination in combinations)
+			{
+				string sku = string.Join("-", combination.Select(x => x.variantValueId).OrderBy(x => x));
+
+				var productVariant = await _productVariantValueRepository
+					.FindByCondition(pv => pv.ProductId == productId && pv.Sku == sku)
+					.FirstOrDefaultAsync();
+
+				if (productVariant == null)
+				{
+					productVariant = new ProductVariantValue
+					{
+						ProductId = productId,
+						Sku = sku,
+						Price = 0, // Set default value
+						OldPrice = 0, // Set default value
+						Stock = 0, // Set default value
+						CreatedAt = DateTime.UtcNow
+					};
+					await _productVariantValueRepository.AddAsync(productVariant);
+				}
+			}
+
+			await _unitOfWork.SaveChangesAsync();
+		}
+
+		private List<List<(int variantValueId, string value)>> GenerateCombinations(List<(int variantValueId, string value)> variantValuePairs)
+		{
+			var variants = variantValuePairs
+				.GroupBy(x => x.value)
+				.Select(g => g.ToList())
+				.ToList();
+
+			var result = new List<List<(int variantValueId, string value)>>();
+			var current = new List<(int variantValueId, string value)>();
+
+			void Generate(int variantIndex)
+			{
+				if (variantIndex == variants.Count)
+				{
+					result.Add(new List<(int variantValueId, string value)>(current));
+					return;
+				}
+
+				foreach (var value in variants[variantIndex])
+				{
+					current.Add(value);
+					Generate(variantIndex + 1);
+					current.RemoveAt(current.Count - 1);
+				}
+			}
+
+			Generate(0);
+			return result;
+		}
+
+		private async Task UpdateProductVariantValuesAsync(int productId,
+			ICollection<ProductVariantValueForUpdateDto> variantValueDtos)
+		{
+			if (variantValueDtos?.Any() == true)
+			{
+				// Xóa tất cả product variant values hiện tại
+				var existingPVValues = await _productVariantValueRepository
+					.FindByCondition(pvv => pvv.ProductId == productId)
+					.ToListAsync();
+				_productVariantValueRepository.RemoveRange(existingPVValues);
+				await _productVariantValueRepository.SaveChangesAsync();
+
+				// Tạo product variant values mới
+				foreach (var pvValueDto in variantValueDtos)
+				{
+					if (pvValueDto.VariantCombination.Count() < 2)
+					{
+						throw new ProductBadRequestException(
+							"Thiếu giá trị để kết hợp thành một biến thể của sản phẩm");
+					}
+
+					var variantValueIds = await _variantValueRepository
+						.FindByCondition(vv => pvValueDto.VariantCombination.Contains(vv.Value))
+						.Select(vv => vv.Id)
+						.ToListAsync();
+
+					if (variantValueIds.Count != pvValueDto.VariantCombination.Count())
+					{
+						throw new ProductBadRequestException(
+							"Không tìm thấy giá trị của biến thể sản phẩm khi cập nhật biến thể sản phẩm");
+					}
+
+					variantValueIds.Sort();
+					var sku = string.Join("-", variantValueIds);
+
+					await _productVariantValueRepository.AddAsync(new ProductVariantValue
+					{
+						ProductId = productId,
+						OldPrice = pvValueDto.OldPrice,
+						Price = pvValueDto.Price,
+						Stock = pvValueDto.Stock,
+						Sku = sku,
+						CreatedAt = DateTime.UtcNow,
+						UpdatedAt = DateTime.UtcNow
+					});
+				}
+
+				await _productVariantValueRepository.SaveChangesAsync();
+			}
+		}
 	}
 }

@@ -23,7 +23,10 @@ namespace ManboShopAPI.Application.UnitOfWork
 		public IOrderDetailRepository OrderDetailRepository { get; }
 		public IAttributeRepository AttributeRepository { get; }
 		public IProductAttributeValueRepository ProductAttributeValueRepository { get; }
-		Task BeginTransactionAsync();
+        public IProductVariantValueRepository ProductVariantValueRepository { get; }
+        public IFavoriteRepository FavoriteRepository { get; }
+        public IBannerDetailRepository BannerDetailRepository { get; }
+        Task BeginTransactionAsync();
 		Task CommitAsync();
 		Task RollbackAsync();
 		Task SaveChangesAsync();

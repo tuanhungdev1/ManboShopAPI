@@ -27,6 +27,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         private readonly Lazy<IAttributeRepository> _attributeRepository;
         private readonly Lazy<OrderRepository> _orderRepository;
         private readonly Lazy<IProductAttributeValueRepository> _productAttributeValueRepository;
+        private readonly Lazy<IProductVariantValueRepository> _productVariantValueRepository;
+        private readonly Lazy<IFavoriteRepository> _favoriteRepository;
+        private readonly Lazy<IBannerDetailRepository> _bannerDetailRepository;
 		public UnitOfWork(ApplicationDbContext context,
                           UserManager<User> userManager
         )
@@ -45,6 +48,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
             _orderRepository = new Lazy<OrderRepository>(() => new OrderRepository(_context));
             _attributeRepository = new Lazy<IAttributeRepository>(() => new AttributeRepository(_context));
             _productAttributeValueRepository = new Lazy<IProductAttributeValueRepository>(() => new ProductAttributeValueRepository(_context));
+            _productVariantValueRepository = new Lazy<IProductVariantValueRepository>(() => new ProductVariantValueRepository(_context));
+            _favoriteRepository = new Lazy<IFavoriteRepository>(() => new FavoriteRepository(_context));
+            _bannerDetailRepository = new Lazy<IBannerDetailRepository>(() => new BannerDetailRepository(_context));
         }
 
         public IBrandRepository BrandRepository => _brandRepository.Value;
@@ -61,6 +67,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         public IAttributeRepository AttributeRepository => _attributeRepository.Value;
         public IProductAttributeValueRepository ProductAttributeValueRepository => _productAttributeValueRepository.Value;
 
+        public IProductVariantValueRepository ProductVariantValueRepository => _productVariantValueRepository.Value;
+        public IFavoriteRepository FavoriteRepository => _favoriteRepository.Value;
+        public IBannerDetailRepository BannerDetailRepository => _bannerDetailRepository.Value;
         public async Task BeginTransactionAsync()
         {
             if (_transaction != null)
