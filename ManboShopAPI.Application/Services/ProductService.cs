@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Bogus.DataSets;
 using ManboShopAPI.Application.Common.Constants;
 using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.Contracts;
@@ -57,11 +58,34 @@ namespace ManboShopAPI.Application.Services
 			_variantRepository = variantRepository;
 		}
 
+		public async Task<ProductDto> GetProductBySlugNameAsync(string slugName)
+		{	
+			var product = await _productRepository.FindByCondition(p => p.SlugName == slugName)
+				.Include(p => p.Brand)
+				.Include(p => p.Category)
+				.Include(p => p.ProductImages)
+				.Include(p => p.ProductAttributeValues)
+					.ThenInclude(pav => pav.Attribute)
+				.Include(p => p.ProductVariantValues)
+				.FirstOrDefaultAsync();
+
+			if (product == null)
+			{
+				_logger.LogError($"Không tìm thấy sản phẩm với slug name {slugName}");
+				throw new ProductNotFoundException(slugName);
+			}
+			
+			_logger.LogInfo($"Lấy thông tin sản phẩm với slug name {slugName} thành công.");
+			return _mapper.Map<ProductDto>(product);
+		}
+
+
 		public async Task<(IEnumerable<ProductDto> products, MetaData metaData)> GetAllProductsAsync(ProductRequestParameters productRequestParameters)
 		{
 			var products = await _productRepository.GetProductsWithDetailsAsync(productRequestParameters);
 			_logger.LogInfo("Lấy danh sách sản phẩm thành công.");
 			var productDtoList = _mapper.Map<IEnumerable<ProductDto>>(products);
+			
 			return (productDtoList, products.MetaData);
 		}
 
@@ -83,7 +107,10 @@ namespace ManboShopAPI.Application.Services
 			}
 
 			_logger.LogInfo($"Lấy thông tin sản phẩm với id {id} thành công.");
-			return _mapper.Map<ProductDto>(product);
+			var productDto = _mapper.Map<ProductDto>(product);
+			
+
+			return productDto;
 		}
 
 		public async Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(int categoryId)
@@ -139,6 +166,7 @@ namespace ManboShopAPI.Application.Services
 
 				// 2. Tạo product cơ bản
 				var product = _mapper.Map<Product>(productDto);
+				product.SlugName = SlugHelper.ConvertToSlug(product.Name);
 				await _productRepository.AddAsync(product);
 				await _productRepository.SaveChangesAsync();
 

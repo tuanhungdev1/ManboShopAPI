@@ -46,14 +46,12 @@ namespace ManboShopAPI.Application.Mappings
 
 			//PRODUCT
 			CreateMap<Product, ProductDto>()
+				.ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
+	.ForMember(dest => dest.Brand, opt => opt.MapFrom(src => src.Brand))
 				.ForMember(dest => dest.Variants, opt =>
 				opt.MapFrom<ProductVariantsResolver>())
 			.ForMember(dest => dest.VariantValues, opt =>
 				opt.MapFrom(src => src.ProductVariantValues))
-				.ForMember(dest => dest.Category, opt =>
-				opt.MapFrom(src => src.Category))
-			.ForMember(dest => dest.Brand, opt =>
-				opt.MapFrom(src => src.Brand))
 			.ForMember(dest => dest.ProductImages, opt =>
 				opt.MapFrom(src => src.ProductImages))
 			.ForMember(dest => dest.Attributes, opt =>

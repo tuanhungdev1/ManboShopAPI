@@ -36,6 +36,21 @@ namespace ManboShopAPI.Controllers
 			});
 		}
 
+		[HttpGet("bySlug/{slugName}")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<ActionResult<ProductDto>> GetProductBySlugName(string slugName)
+		{
+			var product = await _productService.GetProductBySlugNameAsync(slugName);
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = $"Lấy dữ liệu sản phẩm với SlugName {slugName} thành công.",
+				Data = product
+			});
+		}
+
 		[HttpGet("{id:int}", Name = nameof(GetProduct))]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]

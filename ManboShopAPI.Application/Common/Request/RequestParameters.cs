@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ManboShopAPI.Application.Common.Request
+﻿namespace ManboShopAPI.Application.Common.Request
 {
 	public abstract class RequestParameters
 	{
-		const int maxPageSize = 50;
+		const int maxPageSize = 100;
 		public int PageNumber { get; set; } = 1;
 		private int _pageSize = 10;
 		public int PageSize

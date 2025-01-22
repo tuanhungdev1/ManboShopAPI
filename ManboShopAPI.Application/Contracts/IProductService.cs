@@ -12,6 +12,7 @@ namespace ManboShopAPI.Application.Contracts
 	{
 		Task<(IEnumerable<ProductDto> products, MetaData metaData)> GetAllProductsAsync(ProductRequestParameters productRequestParameters);
 		Task<ProductDto> GetProductByIdAsync(int id);
+		Task<ProductDto> GetProductBySlugNameAsync(string slugName);
 		Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(int categoryId);
 		Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(int brandId);
 		Task<ProductDto> CreateProductAsync(ProductForCreateDto productDto);

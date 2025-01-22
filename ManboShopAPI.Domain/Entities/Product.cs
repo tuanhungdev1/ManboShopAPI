@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.IdentityModel.Logging;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ManboShopAPI.Domain.Entities
@@ -8,6 +9,9 @@ namespace ManboShopAPI.Domain.Entities
 		[Required]
 		[MaxLength(100)]
         public required string Name { get; set; }
+		[Required]
+		[MaxLength(100)]
+		public string SlugName { get; set; }
 		[Required]
 		[MaxLength(1000)]
 		public required string Description { get; set; }
