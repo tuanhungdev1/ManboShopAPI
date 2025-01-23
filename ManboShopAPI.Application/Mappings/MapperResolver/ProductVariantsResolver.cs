@@ -22,7 +22,8 @@ namespace ManboShopAPI.Application.Mappings.MapperResolver
 			// Lấy danh sách các variantValueId từ tất cả SKU của ProductVariantValues
 			var variantValueIds = source.ProductVariantValues
 				.SelectMany(pvv => pvv.Sku.Split('-').Select(int.Parse))
-				.Distinct();
+				.Distinct()
+				.ToHashSet();
 
 			// Lấy tất cả VariantValue và Variant tương ứng
 			var variants = _variantRepository.GetVariantsWithValuesByValueIds(variantValueIds);
@@ -31,7 +32,9 @@ namespace ManboShopAPI.Application.Mappings.MapperResolver
 			{
 				Id = v.Id,
 				Name = v.Name,
-				Values = _mapper.Map<ICollection<VariantValueDto>>(v.VariantValues),
+				Values = _mapper.Map<ICollection<VariantValueDto>>(
+					v.VariantValues.Where(item => variantValueIds.Contains(item.Id))
+				),
 				CreatedAt = v.CreatedAt,
 				UpdatedAt = v.UpdatedAt
 			}).ToList();

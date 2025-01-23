@@ -280,10 +280,7 @@ namespace ManboShopAPI.Application.Services
 						throw new ProductBadRequestException("Thiếu giá trị để kết hợp thành một biến thể của sản phẩm");
 					}
 
-					var variantValueIds = await _variantValueRepository
-						.FindByCondition(vv => pvValueDto.VariantCombination.Contains(vv.Value))
-						.Select(vv => vv.Id)
-						.ToListAsync();
+					var variantValueIds = variantValues.Where(predicate => pvValueDto.VariantCombination.Contains(predicate.Value)).Select(selector => selector.Id).ToList();
 
 					if (variantValueIds.Count != pvValueDto.VariantCombination.Count())
 					{
