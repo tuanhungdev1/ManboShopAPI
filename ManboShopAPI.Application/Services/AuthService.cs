@@ -67,6 +67,13 @@ public class AuthService : IAuthService
 				throw new UserBadRequestException($"Email {registrationDto.Email} đã tồn tại trong hệ thống.");
 			}
 
+			bool isUsernameExist = !await CheckUsernameAvailabilityAsync(registrationDto.UserName);
+			if (isUsernameExist)
+			{
+				_logger.LogError($"Username {registrationDto.UserName} đã tồn tại trong hệ thống.");
+				throw new UserBadRequestException($"Username {registrationDto.UserName} đã tồn tại trong hệ thống.");
+			}
+
 			var user = _mapper.Map<User>(registrationDto);
 			var result = await _userManager.CreateAsync(user, registrationDto.Password);
 

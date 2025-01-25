@@ -2,14 +2,9 @@
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.FavoriteDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
-using ManboShopAPI.Application.Interfaces;
-using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Filters;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using System.Net.Mime;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Controllers
 {
@@ -37,6 +32,21 @@ namespace ManboShopAPI.Controllers
 				Success = true,
 				Message = $"Lấy danh sách sản phẩm yêu thích cho người dùng với ID {userId} thành công.",
 				Data = products
+			});
+		}
+
+		[HttpGet("count")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<ActionResult<int>> GetCountFavoriteForCurrentUser()
+		{
+			var count = await _favoriteService.GetCountFavoriteForCurrentUser(User);
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = "Lấy số lượng sản phẩm yêu thích của người dùng hiện tại thành công.",
+				Data = count
 			});
 		}
 

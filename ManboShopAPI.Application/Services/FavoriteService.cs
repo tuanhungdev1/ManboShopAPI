@@ -1,16 +1,13 @@
 ﻿using AutoMapper;
 using ManboShopAPI.Application.Contracts;
-using ManboShopAPI.Application.DTOs;
 using ManboShopAPI.Application.DTOs.FavoriteDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Exceptions.NotFound;
-using ManboShopAPI.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace ManboShopAPI.Application.Services
 {
@@ -96,6 +93,50 @@ namespace ManboShopAPI.Application.Services
 			_favoriteRepository.Remove(favorite);
 			await _favoriteRepository.SaveChangesAsync();
 			_logger.LogInformation($"Xóa sản phẩm yêu thích với ID {favoriteId} thành công.");
+		}
+
+		public async Task<bool> IsFavoriteAsync(int userId, int productId)
+		{
+			var favorite = await _favoriteRepository.FindByCondition(f => f.UserId == userId && f.ProductId == productId).FirstOrDefaultAsync();
+			return favorite != null;
+		}
+
+		public async Task<Favorite> GetFavoriteAsync(int userId, int productId)
+		{
+			return await _favoriteRepository.FindByCondition(f => f.UserId == userId && f.ProductId == productId).FirstOrDefaultAsync();
+		}
+
+		public async Task<IEnumerable<Favorite>> GetFavoritesByUserIdAsync(int userId)
+		{
+			return await _favoriteRepository.FindByCondition(f => f.UserId == userId).ToListAsync();
+		}
+
+		public async Task RemoveFavoriteAsync(int userId, int productId)
+		{
+			var favorite = await _favoriteRepository.FindByCondition(f => f.UserId == userId && f.ProductId == productId).FirstOrDefaultAsync();
+			if (favorite == null)
+			{
+				_logger.LogError($"Không tìm thấy sản phẩm yêu thích với ID {productId} trong danh sách yêu thích của người dùng với ID {userId}");
+				throw new FavoriteNotFoundException($"Không tìm thấy sản phẩm yêu thích với ID {productId} trong danh sách yêu thích của người dùng với ID {userId}");
+			}
+
+			_favoriteRepository.Remove(favorite);
+			await _favoriteRepository.SaveChangesAsync();
+			_logger.LogInformation($"Xóa sản phẩm yêu thích với ID {productId} trong danh sách yêu thích của người dùng với ID {userId} thành công.");
+		}
+
+		public async Task RemoveFavoritesByUserIdAsync(int userId)
+		{
+			var favorites = await _favoriteRepository.FindByCondition(f => f.UserId == userId).ToListAsync();
+			_favoriteRepository.RemoveRange(favorites);
+			await _favoriteRepository.SaveChangesAsync();
+			_logger.LogInformation($"Xóa tất cả sản phẩm yêu thích của người dùng với ID {userId} thành công.");
+		}
+
+		public async Task<int> GetCountFavoriteForCurrentUser(ClaimsPrincipal user)
+		{
+			var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier).Value);
+			return await _favoriteRepository.FindByCondition(f => f.UserId == userId).CountAsync();
 		}
 	}
 }

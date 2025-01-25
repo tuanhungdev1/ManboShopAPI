@@ -1,20 +1,14 @@
 ﻿using AutoMapper;
 using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.Contracts;
-using ManboShopAPI.Application.DTOs.AddressDtos;
 using ManboShopAPI.Application.DTOs.UserDtos;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace ManboShopAPI.Application.Services
 {
@@ -46,6 +40,38 @@ namespace ManboShopAPI.Application.Services
 			_logger.LogInfo("Lấy danh sách người dùng thành công.");
 			var userDtoList = _mapper.Map<IEnumerable<UserDto>>(users);
 			return (userDtoList, users.MetaData);
+		}
+
+		public async Task<UserDto> GetCurrentUserAsync(ClaimsPrincipal user)
+		{
+			// Extract user ID from access token
+			var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			if (string.IsNullOrEmpty(userId))
+			{
+				_logger.LogError("Không tìm thấy thông tin người dùng từ token.");
+				throw new UnauthorizedAccessException("Không có thông tin xác thực.");
+			}
+
+			
+			if (!int.TryParse(userId, out int parsedUserId))
+			{
+				_logger.LogError($"Không thể chuyển đổi ID người dùng: {userId}");
+				throw new UserBadRequestException("Định dạng ID người dùng không hợp lệ.");
+			}
+
+			
+			var userCurrent = await _userRepository.GetByIdAsync(parsedUserId);
+			if (userCurrent == null)
+			{
+				_logger.LogError($"Không tìm thấy người dùng với ID {parsedUserId}");
+				throw new UserNotFoundException(parsedUserId);
+			}
+
+			var userDto = _mapper.Map<UserDto>(userCurrent);
+			var roles = await _userManager.GetRolesAsync(userCurrent);
+			userDto.Roles = roles;
+			_logger.LogInfo("Lấy thông tin người dùng hiện tại thành công.");
+			return userDto;
 		}
 
 		public async Task<UserDto> GetUserByIdAsync(int userId)
@@ -262,92 +288,5 @@ namespace ManboShopAPI.Application.Services
 			_logger.LogInfo($"Thay đổi mật khẩu thành công cho người dùng với Id {userId}");
 		}
 
-		//public async Task UpdateProfilePictureAsync(int userId, IFormFile file)
-		//{
-		//	var user = await _userRepository.GetByIdAsync(userId);
-		//	if (user == null)
-		//	{
-		//		_logger.LogError($"Không tìm thấy người dùng với Id {userId}");
-		//		throw new UserNotFoundException(userId);
-		//	}
-
-			
-		//	user.UpdatedAt = DateTime.UtcNow;
-
-		//	_userRepository.Update(user);
-		//	await _userRepository.SaveChangesAsync();
-
-		//	_logger.LogInfo($"Cập nhật ảnh đại diện thành công cho người dùng với Id {userId}");
-		//}
-
-		//public async Task<IEnumerable<AddressDto>> GetUserAddressesAsync(int userId)
-		//{
-		//	var user = await _userRepository.GetUserWithOrdersAsync(userId);
-		//	if (user == null)
-		//	{
-		//		_logger.LogError($"Không tìm thấy người dùng với Id {userId}");
-		//		throw new UserNotFoundException(userId);
-		//	}
-
-		//	_logger.LogInfo($"Lấy danh sách địa chỉ thành công cho người dùng với Id {userId}");
-		//	return _mapper.Map<IEnumerable<AddressDto>>(user.Addresses);
-		//}
-
-		//public async Task AddUserAddressAsync(int userId, AddressDto addressDto)
-		//{
-		//	var user = await _userRepository.GetByIdAsync(userId);
-		//	if (user == null)
-		//	{
-		//		_logger.LogError($"Không tìm thấy người dùng với Id {userId}");
-		//		throw new UserNotFoundException(userId);
-		//	}
-
-		//	var address = _mapper.Map<Address>(addressDto);
-		//	address.UserId = userId;
-
-		//	user.Addresses.Add(address);
-		//	await _userRepository.SaveChangesAsync();
-
-		//	_logger.LogInfo($"Thêm địa chỉ mới thành công cho người dùng với Id {userId}");
-		//}
-
-		//public async Task SetDefaultAddressAsync(int userId, int addressId)
-		//{
-		//	var user = await _userRepository.GetUserWithOrdersAsync(userId);
-		//	if (user == null)
-		//	{
-		//		_logger.LogError($"Không tìm thấy người dùng với Id {userId}");
-		//		throw new UserNotFoundException(userId);
-		//	}
-
-		//	var address = user.Addresses.FirstOrDefault(a => a.Id == addressId);
-		//	if (address == null)
-		//	{
-		//		_logger.LogError($"Không tìm thấy địa chỉ với Id {addressId}");
-		//		throw new AddressNotFoundException(addressId);
-		//	}
-
-		//	foreach (var addr in user.Addresses)
-		//	{
-		//		addr.IsDefault = addr.Id == addressId;
-		//	}
-
-		//	await _userRepository.SaveChangesAsync();
-		//	_logger.LogInfo($"Đặt địa chỉ mặc định thành công cho người dùng với Id {userId}");
-		//}
-
-		//public async Task<bool> ValidatePasswordAsync(int userId, string password)
-		//{
-		//	var user = await _userManager.FindByIdAsync(userId.ToString());
-		//	if (user == null)
-		//	{
-		//		_logger.LogError($"Không tìm thấy người dùng với Id {userId}");
-		//		throw new UserNotFoundException(userId);
-		//	}
-
-		//	var result = await _userManager.CheckPasswordAsync(user, password);
-		//	_logger.LogInfo($"Kiểm tra mật khẩu thành công cho người dùng với Id {userId}");
-		//	return result;
-		//}
 	}
 }

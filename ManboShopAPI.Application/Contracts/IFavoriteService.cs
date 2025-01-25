@@ -1,10 +1,6 @@
 ﻿using ManboShopAPI.Application.DTOs.FavoriteDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace ManboShopAPI.Application.Contracts
 {
@@ -13,5 +9,6 @@ namespace ManboShopAPI.Application.Contracts
 		Task<IEnumerable<ProductDto>> GetUserFavoriteProductsAsync(int userId);
 		Task AddFavoriteAsync(FavoriteForCreateDto favoriteForCreateDto);
 		Task RemoveFavoriteAsync(int favoriteId);
+		Task<int> GetCountFavoriteForCurrentUser(ClaimsPrincipal user);
 	}
 }

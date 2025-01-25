@@ -3,6 +3,7 @@ using ManboShopAPI.Application.Common.Response;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.UserDtos;
 using ManboShopAPI.Filters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 
@@ -33,6 +34,23 @@ namespace ManboShopAPI.Controllers
 				Message = "Lấy danh sách người dùng thành công.",
 				Data = users,
 				Pagination = metaData
+			});
+		}
+
+		
+		[Authorize]
+		[HttpGet("current")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<ActionResult<UserDto>> GetCurrentUser()
+		{
+			var user = await _userService.GetCurrentUserAsync(User);
+			return Ok(new ApiResponse<UserDto>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = "Lấy dữ liệu người dùng hiện tại thành công.",
+				Data = user
 			});
 		}
 
