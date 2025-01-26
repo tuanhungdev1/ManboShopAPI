@@ -37,6 +37,25 @@ namespace ManboShopAPI.Controllers
 			});
 		}
 
+		[Authorize]
+		[HttpPut("current")]
+		[ValidationFilter]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<ActionResult<UserDto>> UpdateCurrentUser([FromBody] UserForUpdateDto userForUpdateDto)
+		{
+			var user = await _userService.UpdateCurrentUserAsync(User, userForUpdateDto);
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = "Cập nhật thông tin người dùng hiện tại thành công.",
+				Data = user
+			});
+		}
+
+
 		
 		[Authorize]
 		[HttpGet("current")]

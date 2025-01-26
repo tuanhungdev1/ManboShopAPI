@@ -16,6 +16,7 @@ namespace ManboShopAPI.Application.Contracts
 		Task<(IEnumerable<UserDto> userDtos, MetaData metaData)> GetUsersAsync(UserRequestParameters userRequestParameters);
 		Task<UserDto> GetUserByIdAsync(int userId);
 		Task<UserDto> GetCurrentUserAsync(ClaimsPrincipal user);
+		Task<UserDto> UpdateCurrentUserAsync(ClaimsPrincipal user, UserForUpdateDto userForUpdateDto);
 		Task<UserDto> GetUserByEmailAsync(string email);
 		Task<UserDto> CreateUserAsync(UserForCreateDto userForCreateDto);
 		Task<UserDto> UpdateUserAsync(int userId, UserForUpdateDto userForUpdateDto);

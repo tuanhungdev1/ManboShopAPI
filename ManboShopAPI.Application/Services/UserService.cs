@@ -154,6 +154,38 @@ namespace ManboShopAPI.Application.Services
 			return _mapper.Map<UserDto>(user);
 		}
 
+		public async Task<UserDto> UpdateCurrentUserAsync(ClaimsPrincipal userClaim, UserForUpdateDto userForUpdateDto)
+		{
+
+			var userId = userClaim.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			var user = await _userRepository.GetByIdAsync(int.Parse(userId));
+
+			if (user == null)
+			{
+				_logger.LogError($"Không tìm thấy người dùng với ID {userId}");
+				throw new UserNotFoundException(userId);
+			}
+
+			// Cập nhật thông tin cá nhân
+			user.FirstName = userForUpdateDto.FirstName ?? user.FirstName;
+			user.LastName = userForUpdateDto.LastName ?? user.LastName;
+			user.Address = userForUpdateDto.Address ?? user.Address;
+			user.PhoneNumber = userForUpdateDto.PhoneNumber ?? user.PhoneNumber;
+
+
+			var updateResult = await _userManager.UpdateAsync(user);
+			if (!updateResult.Succeeded)
+			{
+				var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+				_logger.LogError($"Cập nhật người dùng thất bại: {errors}");
+				throw new UserBadRequestException($"Cập nhật người dùng thất bại: {errors}");
+			}
+
+			_logger.LogInfo("Cập nhật người dùng thành công.");
+
+			return _mapper.Map<UserDto>(user);
+		}
+
 		public async Task<UserDto> UpdateUserAsync(int userId, UserForUpdateDto userForUpdateDto)
 		{
 			// Tìm người dùng theo ID
@@ -164,58 +196,12 @@ namespace ManboShopAPI.Application.Services
 				throw new UserNotFoundException($"Người dùng với ID {userId} không tồn tại.");
 			}
 
-			
-
-			// Kiểm tra email nếu nó thay đổi
-			if (!string.IsNullOrEmpty(userForUpdateDto.Email) && user.Email != userForUpdateDto.Email)
-			{
-				if (await _userManager.FindByEmailAsync(userForUpdateDto.Email) != null)
-				{
-					_logger.LogError($"Email {userForUpdateDto.Email} đã tồn tại trong hệ thống.");
-					throw new UserBadRequestException($"Email {userForUpdateDto.Email} đã tồn tại trong hệ thống.");
-				}
-				user.Email = userForUpdateDto.Email;
-			}
-
-			// Lấy danh sách roles từ cơ sở dữ liệu
-			var rolesInDb = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
-
-			// Kiểm tra các giá trị roles hợp lệ nếu có
-			if (userForUpdateDto.Roles != null && userForUpdateDto.Roles.Any(role => !rolesInDb.Contains(role)))
-			{
-				_logger.LogError("Roles chứa giá trị không hợp lệ.");
-				throw new UserBadRequestException($"Roles chứa giá trị không hợp lệ. Chỉ chấp nhận {string.Join(", ", rolesInDb)}.");
-			}
-
 			// Cập nhật thông tin cá nhân
 			user.FirstName = userForUpdateDto.FirstName ?? user.FirstName;
 			user.LastName = userForUpdateDto.LastName ?? user.LastName;
 			user.Address = userForUpdateDto.Address ?? user.Address;
 			user.PhoneNumber = userForUpdateDto.PhoneNumber ?? user.PhoneNumber;
-			user.ProfilePictureUrl = userForUpdateDto.ProfilePictureUrl ?? user.ProfilePictureUrl;
 
-			// Cập nhật mật khẩu nếu có
-			if (!string.IsNullOrEmpty(userForUpdateDto.CurrentPassword) &&
-				!string.IsNullOrEmpty(userForUpdateDto.NewPassword) &&
-				!string.IsNullOrEmpty(userForUpdateDto.ConfirmNewPassword))
-			{
-				var passwordValidator = new PasswordValidator<User>();
-				var passwordValidationResult = await passwordValidator.ValidateAsync(_userManager, user, userForUpdateDto.NewPassword);
-				if (!passwordValidationResult.Succeeded)
-				{
-					var errors = string.Join(", ", passwordValidationResult.Errors.Select(e => e.Description));
-					_logger.LogError($"Mật khẩu mới không đáp ứng yêu cầu: {errors}");
-					throw new UserBadRequestException($"Mật khẩu mới không đáp ứng yêu cầu: {errors}");
-				}
-
-				var changePasswordResult = await _userManager.ChangePasswordAsync(user, userForUpdateDto.CurrentPassword, userForUpdateDto.NewPassword);
-				if (!changePasswordResult.Succeeded)
-				{
-					var errors = string.Join(", ", changePasswordResult.Errors.Select(e => e.Description));
-					_logger.LogError($"Thay đổi mật khẩu thất bại: {errors}");
-					throw new UserBadRequestException($"Thay đổi mật khẩu thất bại: {errors}");
-				}
-			}
 
 			var updateResult = await _userManager.UpdateAsync(user);
 			if (!updateResult.Succeeded)
@@ -223,24 +209,6 @@ namespace ManboShopAPI.Application.Services
 				var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
 				_logger.LogError($"Cập nhật người dùng thất bại: {errors}");
 				throw new UserBadRequestException($"Cập nhật người dùng thất bại: {errors}");
-			}
-
-			// Cập nhật roles nếu có
-			if (userForUpdateDto.Roles != null)
-			{
-				var currentRoles = await _userManager.GetRolesAsync(user);
-				var rolesToAdd = userForUpdateDto.Roles.Except(currentRoles).ToList();
-				var rolesToRemove = currentRoles.Except(userForUpdateDto.Roles).ToList();
-
-				if (rolesToAdd.Any())
-				{
-					await _userManager.AddToRolesAsync(user, rolesToAdd);
-				}
-
-				if (rolesToRemove.Any())
-				{
-					await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
-				}
 			}
 
 			_logger.LogInfo("Cập nhật người dùng thành công.");
