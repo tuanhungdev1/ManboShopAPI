@@ -141,6 +141,7 @@ public class AuthService : IAuthService
 		}
 		catch (Exception)
 		{
+			_logger.LogError("Không thể đăng nhập");
 			throw;
 		}
 	}

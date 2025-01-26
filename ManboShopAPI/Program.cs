@@ -24,19 +24,10 @@ namespace ManboShopAPI
 			var _audience = builder.Configuration["JwtSettings:ValidAudience"];
 			var _expirtyMinutes = builder.Configuration["JwtSettings:TokenExpiryMinutes"];
 
-
-			builder.Services.AddControllers();
-			builder.Services.AddEndpointsApiExplorer();
-			builder.Services.AddSwaggerGen();
-			builder.Host.UseSerilog();
-			//builder.Services.AddAutoMapper(typeof(MappingProfile));
-			builder.Services
-							.AddInfrastructureServices(builder.Configuration)
-							.AddApplicationServices()
-							.AddLoggingServices(builder.Configuration);
-
-			
-
+			//ServicesExtensions
+			builder.Services.ConfigureIdentity();
+			builder.Services.ConfigureIISIntegration();
+			builder.Services.AddFilterAttribute();
 
 			builder.Services.Configure<IISServerOptions>(options =>
 			{
@@ -48,15 +39,7 @@ namespace ManboShopAPI
 				options.MultipartBodyLengthLimit = int.MaxValue;
 			});
 
-
-
-			//CORS
-			builder.Services.AddCors(c =>
-			{
-				c.AddPolicy("CorsPolicy", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("X-Pagination"));
-			});
-
-			//Authentication và JwtBearer
+			// Cấu hình Authentication và JwtBearer riêng
 			builder.Services.AddAuthentication(options =>
 			{
 				options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -109,6 +92,7 @@ namespace ManboShopAPI
 				};
 			});
 
+			// Thêm cấu hình để tắt redirect cho cookie authentication
 			builder.Services.ConfigureApplicationCookie(options =>
 			{
 				options.Events.OnRedirectToLogin = context =>
@@ -117,6 +101,16 @@ namespace ManboShopAPI
 					return Task.CompletedTask;
 				};
 			});
+
+			builder.Services.AddControllers();
+			builder.Services.AddEndpointsApiExplorer();
+			builder.Services.AddSwaggerGen();
+			builder.Host.UseSerilog();
+			//builder.Services.AddAutoMapper(typeof(MappingProfile));
+			builder.Services
+							.AddInfrastructureServices(builder.Configuration)
+							.AddApplicationServices()
+							.AddLoggingServices(builder.Configuration);
 
 			builder.Configuration
 								.SetBasePath(builder.Environment.ContentRootPath)
@@ -134,10 +128,12 @@ namespace ManboShopAPI
 			builder.Services.Configure<EmailConfiguration>(
 														builder.Configuration.GetSection("EmailConfiguration")
 														);
-			//ServicesExtensions
-			builder.Services.ConfigureIdentity();
-			builder.Services.ConfigureIISIntegration();
-			builder.Services.AddFilterAttribute();
+			
+
+			builder.Services.AddCors(c =>
+			{
+				c.AddPolicy("CorsPolicy", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("X-Pagination"));
+			});
 
 			var app = builder.Build();
 			if (app.Environment.IsDevelopment())
@@ -149,14 +145,10 @@ namespace ManboShopAPI
 			app.ConfigureExceptionHandler();
 			app.UseHttpsRedirection();
 			app.UseCors("CorsPolicy");
-
-			app.UseHttpsRedirection();
+			app.UseMiddleware<TokenValidationMiddleware>();
 			app.UseAuthentication();
 			app.UseAuthorization();
-
-
 			app.MapControllers();
-
 			app.Run();
 		}
 	}
