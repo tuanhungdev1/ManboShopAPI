@@ -6,9 +6,9 @@ namespace ManboShopAPI.Application.Contracts
 {
 	public interface IFavoriteService
 	{
-		Task<IEnumerable<ProductDto>> GetUserFavoriteProductsAsync(int userId);
-		Task AddFavoriteAsync(FavoriteForCreateDto favoriteForCreateDto);
-		Task RemoveFavoriteAsync(int favoriteId);
+		Task<IEnumerable<ProductDto>> GetUserFavoriteProductsAsync(ClaimsPrincipal user);
+		Task AddFavoriteAsync(ClaimsPrincipal user, FavoriteForCreateDto favoriteForCreateDto);
+		Task RemoveFavoriteAsync(ClaimsPrincipal user, FavoriteForCreateDto favoriteForCreateDto);
 		Task<int> GetCountFavoriteForCurrentUser(ClaimsPrincipal user);
 	}
 }

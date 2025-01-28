@@ -1,6 +1,4 @@
-﻿using ManboShopAPI.Application.Common.Models;
-
-namespace ManboShopAPI.Application.Contracts
+﻿namespace ManboShopAPI.Application.Contracts
 {
 	public interface IEmailSender
 	{

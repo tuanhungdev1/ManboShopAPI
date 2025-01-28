@@ -35,6 +35,7 @@ namespace ManboShopAPI.Application
 			services.AddScoped<IFeedbackService, FeedbackService>();
 			services.AddScoped<IEmailSender, EmailSender>();
 			services.AddScoped<IVerificationService, VerificationService>();
+			services.AddScoped<ISessionService, SessionService>();
 			// Đăng ký AutoMapper
 			services.AddAutoMapper(Assembly.GetExecutingAssembly());
 			

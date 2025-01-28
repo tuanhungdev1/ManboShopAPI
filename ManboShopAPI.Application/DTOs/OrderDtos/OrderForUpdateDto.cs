@@ -1,15 +1,10 @@
 ﻿using ManboShopAPI.Domain.Enums;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application.DTOs.OrderDtos
 {
-	 public class OrderForUpdateDto
+	public class OrderForUpdateDto
 	{
 		[Required(ErrorMessage = "ID người dùng là bắt buộc.")]
 		public int UserId { get; set; }

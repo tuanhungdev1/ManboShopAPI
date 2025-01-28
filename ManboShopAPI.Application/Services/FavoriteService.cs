@@ -4,6 +4,7 @@ using ManboShopAPI.Application.DTOs.FavoriteDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
+using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -32,29 +33,54 @@ namespace ManboShopAPI.Application.Services
 			_logger = logger;
 		}
 
-		public async Task<IEnumerable<ProductDto>> GetUserFavoriteProductsAsync(int userId)
+		public async Task<IEnumerable<ProductDto>> GetUserFavoriteProductsAsync(ClaimsPrincipal user)
 		{
-			var user = await _userRepository.GetByIdAsync(userId);
+			var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			if (string.IsNullOrEmpty(userId))
+			{
+				_logger.LogError("Không tìm thấy thông tin người dùng từ token.");
+				throw new UnauthorizedAccessException("Không có thông tin xác thực.");
+			}
 
-			if (user == null)
+
+			if (!int.TryParse(userId, out int parsedUserId))
+			{
+				_logger.LogError($"Không thể chuyển đổi ID người dùng: {userId}");
+				throw new UserBadRequestException("Định dạng ID người dùng không hợp lệ.");
+			}
+			var currentUser = await _userRepository.GetByIdAsync(parsedUserId);
+			if (currentUser == null)
 			{
 				_logger.LogError($"Không tìm thấy người dùng với ID {userId}");
 				throw new UserNotFoundException(userId);
 			}
 
-			var products = await _favoriteRepository.GetProductsByUserIdAsync(userId);
+			var products = await _favoriteRepository.GetProductsByUserIdAsync(parsedUserId);
 			_logger.LogInformation($"Lấy danh sách sản phẩm yêu thích cho người dùng với ID {userId} thành công.");
 			return _mapper.Map<IEnumerable<ProductDto>>(products);
 		}
 
-		public async Task AddFavoriteAsync(FavoriteForCreateDto favoriteForCreateDto)
+		public async Task AddFavoriteAsync(ClaimsPrincipal user, FavoriteForCreateDto favoriteForCreateDto)
 		{
-			var existingFavorite = await _favoriteRepository.FindByCondition(f => f.UserId == favoriteForCreateDto.UserId && f.ProductId == favoriteForCreateDto.ProductId).FirstOrDefaultAsync();
+			var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			if (string.IsNullOrEmpty(userId))
+			{
+				_logger.LogError("Không tìm thấy thông tin người dùng từ token.");
+				throw new UnauthorizedAccessException("Không có thông tin xác thực.");
+			}
+
+
+			if (!int.TryParse(userId, out int parsedUserId))
+			{
+				_logger.LogError($"Không thể chuyển đổi ID người dùng: {userId}");
+				throw new UserBadRequestException("Định dạng ID người dùng không hợp lệ.");
+			}
+			var existingFavorite = await _favoriteRepository.FindByCondition(f => f.UserId == parsedUserId && f.ProductId == favoriteForCreateDto.ProductId).FirstOrDefaultAsync();
 
 			if (existingFavorite != null)
 			{
-				_logger.LogError($"Sản phẩm với ID {favoriteForCreateDto.ProductId} đã tồn tại trong danh sách yêu thích của người dùng với ID {favoriteForCreateDto.UserId}");
-				throw new FavoriteBadRequestException($"Sản phẩm với ID {favoriteForCreateDto.ProductId} đã tồn tại trong danh sách yêu thích của người dùng với ID {favoriteForCreateDto.UserId}");
+				_logger.LogError($"Sản phẩm đã tồn tại trong danh sách yêu thích của người dùng");
+				throw new FavoriteBadRequestException($"Sản phẩm đã tồn tại trong danh sách yêu thích của người dùng");
 			}
 
 			var product = await _productRepository.GetByIdAsync(favoriteForCreateDto.ProductId);
@@ -64,35 +90,56 @@ namespace ManboShopAPI.Application.Services
 				throw new ProductNotFoundException(favoriteForCreateDto.ProductId);
 			}
 
-			var user = await _userRepository.GetByIdAsync(favoriteForCreateDto.UserId);
+			var currentUser = await _userRepository.GetByIdAsync(parsedUserId);
 
 			if (user == null)
 			{
-				_logger.LogError($"Không tìm thấy người dùng với ID {favoriteForCreateDto.UserId}");
-				throw new UserNotFoundException(favoriteForCreateDto.UserId);
+				_logger.LogError($"Không tìm thấy người dùng với ID {userId}");
+				throw new UserNotFoundException(userId);
 			}
 			var favorite = new Favorite
 			{
-				UserId = favoriteForCreateDto.UserId,
+				UserId = parsedUserId,
 				ProductId = favoriteForCreateDto.ProductId
 			};
 			await _favoriteRepository.AddAsync(favorite);
 			await _favoriteRepository.SaveChangesAsync();
-			_logger.LogInformation($"Thêm sản phẩm với ID {favoriteForCreateDto.ProductId} vào danh sách yêu thích của người dùng với ID {favoriteForCreateDto.UserId} thành công.");
+			_logger.LogInformation($"Thêm sản phẩm với ID {favoriteForCreateDto.ProductId} vào danh sách yêu thích của người dùng với ID {userId} thành công.");
 		}
 
-		public async Task RemoveFavoriteAsync(int favoriteId)
+		public async Task RemoveFavoriteAsync(ClaimsPrincipal user, FavoriteForCreateDto favoriteForCreateDto)
 		{
-			var favorite = await _favoriteRepository.FindByCondition(f => f.Id == favoriteId).FirstOrDefaultAsync();
+			var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			if (string.IsNullOrEmpty(userId))
+			{
+				_logger.LogError("Không tìm thấy thông tin người dùng từ token.");
+				throw new UnauthorizedAccessException("Không có thông tin xác thực.");
+			}
+
+
+			if (!int.TryParse(userId, out int parsedUserId))
+			{
+				_logger.LogError($"Không thể chuyển đổi ID người dùng: {userId}");
+				throw new UserBadRequestException("Định dạng ID người dùng không hợp lệ.");
+			}
+
+			var product = await _productRepository.GetByIdAsync(favoriteForCreateDto.ProductId);
+			if (product == null)
+			{
+				_logger.LogError($"Không tìm thấy sản phẩm với ID {favoriteForCreateDto.ProductId}");
+				throw new ProductNotFoundException(favoriteForCreateDto.ProductId);
+			}
+
+			var favorite = await _favoriteRepository.FindByCondition(f => f.UserId == parsedUserId && f.ProductId == product.Id).FirstOrDefaultAsync();
 			if (favorite == null)
 			{
-				_logger.LogError($"Không tìm thấy sản phẩm yêu thích với ID {favoriteId} trong cơ sở dữ liệu.");
-				throw new FavoriteNotFoundException($"Không tìm thấy sản phẩm yêu thích với ID {favoriteId} trong cơ sở dữ liệu.");
+				_logger.LogError($"Không tìm thấy sản phẩm yêu thích trong danh sách yêu thích của User.");
+				throw new FavoriteNotFoundException($"Lấy danh sách sản phẩm yêu thích cho người dùng thành công sách yêu thích");
 			}
 
 			_favoriteRepository.Remove(favorite);
 			await _favoriteRepository.SaveChangesAsync();
-			_logger.LogInformation($"Xóa sản phẩm yêu thích với ID {favoriteId} thành công.");
+			_logger.LogInformation($"Xóa sản phẩm yêu thích với ID {favoriteForCreateDto.ProductId} thành công.");
 		}
 
 		public async Task<bool> IsFavoriteAsync(int userId, int productId)

@@ -1,10 +1,5 @@
 ﻿using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application.UnitOfWork
 {

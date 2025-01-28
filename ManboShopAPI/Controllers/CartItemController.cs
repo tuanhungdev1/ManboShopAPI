@@ -34,22 +34,6 @@ namespace ManboShopAPI.Controllers
 			});
 		}
 
-		[HttpPost]
-		[ValidationFilter]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<ActionResult<CartItemDto>> AddItemToCart([FromBody] CartItemForCreateDto cartItemDto)
-		{
-			var cartItem = await _cartItemService.AddItemToCartAsync(cartItemDto);
-			return StatusCode(201, new ApiResponse<object>
-			{
-				StatusCode = 201,
-				Success = true,
-				Message = "Thêm sản phẩm vào giỏ hàng thành công.",
-				Data = cartItem
-			});
-		}
-
 		[HttpPut("{cartItemId:int}/quantity")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]

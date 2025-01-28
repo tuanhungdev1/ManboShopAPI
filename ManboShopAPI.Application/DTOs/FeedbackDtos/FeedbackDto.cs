@@ -1,12 +1,5 @@
 ﻿using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Application.DTOs.UserDtos;
-using ManboShopAPI.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application.DTOs.FeedbackDtos
 {

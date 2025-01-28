@@ -1,6 +1,4 @@
-﻿using ManboShopAPI.Domain.Entities;
-
-namespace ManboShopAPI.Application.DTOs.CategoryDtos
+﻿namespace ManboShopAPI.Application.DTOs.CategoryDtos
 {
 	public class CategoryDto
 	{

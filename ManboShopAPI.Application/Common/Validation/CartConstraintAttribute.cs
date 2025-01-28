@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+﻿using System.ComponentModel.DataAnnotations;
 using ManboShopAPI.Application.DTOs.CartDtos;
 
 namespace ManboShopAPI.Application.Common.Validation

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ManboShopAPI.Application.DTOs.AddressDtos
+﻿namespace ManboShopAPI.Application.DTOs.AddressDtos
 {
-    public class AddressDto
+	public class AddressDto
     {
         public int UserId { get; set; }
         public string Name { get; set; }

@@ -25,17 +25,17 @@ namespace ManboShopAPI.Application.Services
 			_logger = logger;
 		}
 
-		public async Task<CartItemDto> AddItemToCartAsync(CartItemForCreateDto cartItemForCreateDto)
+		public async Task<CartItemDto> AddItemToCartAsync(int cartId, CartItemForCreateDto cartItemForCreateDto)
 		{
 			try
 			{
 				await _unitOfWork.BeginTransactionAsync();
 
-				var exitsingCart = await _unitOfWork.CartRepository.GetByIdAsync(cartItemForCreateDto.CartId);
+				var exitsingCart = await _unitOfWork.CartRepository.GetByIdAsync(cartId);
 
 				if (exitsingCart == null)
 				{
-					_logger.LogError($"Không tìm thấy giỏ hàng với Id {cartItemForCreateDto.CartId}");
+					_logger.LogError($"Không tìm thấy giỏ hàng với Id {cartId}");
 					throw new CartNotFoundException($"Không tìm thấy giỏ hàng");
 				}
 
@@ -57,7 +57,7 @@ namespace ManboShopAPI.Application.Services
 				}
 
 				var existingItem = await _unitOfWork.CartItemRepository
-					.GetCartItemAsync(cartItemForCreateDto.CartId, cartItemForCreateDto.ProductId);
+					.GetCartItemAsync(cartId, cartItemForCreateDto.ProductId);
 
 				if (existingItem != null)
 				{

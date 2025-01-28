@@ -1,11 +1,6 @@
 ﻿using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 {
@@ -24,6 +19,10 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 					.ThenInclude(pc => pc.Category)
 				.Include(f => f.Product)
 					.ThenInclude(pc => pc.Brand)
+				.Include(f => f.Product)
+					.ThenInclude(p => p.ProductVariantValues)
+					.Include(f => f.Product)
+					.ThenInclude(p => p.ProductAttributeValues)
 				.Where(f => f.UserId == userId)
 				.Select(f => f.Product);
 

@@ -2,7 +2,6 @@
 using ManboShopAPI.Application.Common.Response;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.NewsDetailDto;
-using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;

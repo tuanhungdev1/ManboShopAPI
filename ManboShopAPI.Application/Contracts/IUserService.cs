@@ -1,13 +1,6 @@
 ﻿using ManboShopAPI.Application.Common.Request;
-using ManboShopAPI.Application.DTOs.AddressDtos;
 using ManboShopAPI.Application.DTOs.UserDtos;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application.Contracts
 {

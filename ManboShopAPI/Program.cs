@@ -1,7 +1,6 @@
 ﻿
 using ManboShopAPI.Application;
 using ManboShopAPI.Application.Common.Models;
-using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Extensions;
 using ManboShopAPI.Infrastructure;
 using ManboShopAPI.Middleware;
@@ -135,6 +134,13 @@ namespace ManboShopAPI
 				c.AddPolicy("CorsPolicy", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("X-Pagination"));
 			});
 
+
+			builder.Services.Configure<CookiePolicyOptions>(options =>
+			{
+				options.CheckConsentNeeded = context => true;
+				options.MinimumSameSitePolicy = SameSiteMode.Strict;
+			});
+
 			var app = builder.Build();
 			if (app.Environment.IsDevelopment())
 			{
@@ -148,6 +154,7 @@ namespace ManboShopAPI
 			app.UseMiddleware<TokenValidationMiddleware>();
 			app.UseAuthentication();
 			app.UseAuthorization();
+			app.UseMiddleware<CartSessionMiddleware>();
 			app.MapControllers();
 			app.Run();
 		}

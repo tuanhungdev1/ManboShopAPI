@@ -1,12 +1,4 @@
-﻿using ManboShopAPI.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ManboShopAPI.Application.DTOs.NewsDtos
+﻿namespace ManboShopAPI.Application.DTOs.NewsDtos
 {
 	public class NewsDto
 	{

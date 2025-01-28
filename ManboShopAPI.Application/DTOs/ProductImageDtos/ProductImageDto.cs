@@ -1,11 +1,4 @@
-﻿using ManboShopAPI.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ManboShopAPI.Application.DTOs.ProductImageDtos
+﻿namespace ManboShopAPI.Application.DTOs.ProductImageDtos
 {
 	public class ProductImageDto
 	{

@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using ManboShopAPI.Application.Common.Constants;
 using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.CategoryDtos;

@@ -208,6 +208,9 @@ public class AuthService : IAuthService
 			var jwtSettings = _configuration.GetSection("JwtSettings");
 			var expires = DateTimeOffset.Now.AddDays(Convert.ToDouble(jwtSettings["RefreshTokenExpiryDays"]));
 
+            Console.WriteLine($"Expires Refresh Token: {expires.UtcDateTime}");
+            Console.WriteLine($"Current Time UTC Now: {DateTime.UtcNow}");
+			Console.WriteLine($"Current Time Now: {DateTime.Now}");
 			user.RefreshToken = refreshToken;
 			user.RefreshTokenExpiryTime = expires.UtcDateTime;
 			await _userManager.UpdateAsync(user);

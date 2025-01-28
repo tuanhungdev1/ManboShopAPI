@@ -2,8 +2,8 @@
 using ManboShopAPI.Application.Common.Response;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.CartDtos;
+using ManboShopAPI.Application.DTOs.CartItemDtos;
 using ManboShopAPI.Application.DTOs.OrderDtos;
-using ManboShopAPI.Domain.Interfaces;
 using ManboShopAPI.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
@@ -16,26 +16,28 @@ namespace ManboShopAPI.Controllers
 	public class CartController : ControllerBase
 	{
 		private readonly ICartService _cartService;
+		private readonly ISessionService _sessionService;
 
-		public CartController(ICartService cartService)
+		public CartController(ICartService cartService, ISessionService sessionService)
 		{
 			_cartService = cartService;
+			_sessionService = sessionService;
 		}
 
 		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<IEnumerable<CartDto>>> GetAllCarts(
-			[FromQuery] CartRequestParameters cartRequestParameters)
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<ActionResult<CartDto>> GetCart()
 		{
-			var (carts, metaData) = await _cartService.GetAllCartAsync(cartRequestParameters);
+			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
+			var cart = await _cartService.GetOrCreateCartBySessionAsync(sessionId);
+
 			return Ok(new ApiResponse<object>
 			{
 				StatusCode = 200,
 				Success = true,
-				Message = "Lấy danh sách giỏ hàng thành công.",
-				Data = carts,
-				Pagination = metaData
+				Message = "Lấy thông tin giỏ hàng thành công.",
+				Data = cart
 			});
 		}
 
@@ -69,122 +71,113 @@ namespace ManboShopAPI.Controllers
 			});
 		}
 
-		[HttpPost]
+		[HttpPost("merge-to-user/{userId:int}")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		public async Task<IActionResult> MergeSessionCartToUserCart(int userId)
+		{
+			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
+			await _cartService.MergeSessionCartToUserCart(sessionId, userId);
+			_sessionService.ClearSessionId(HttpContext);
+
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = "Gộp giỏ hàng session vào giỏ hàng người dùng thành công."
+			});
+		}
+
+		[HttpPost("items")]
 		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> CreateCart([FromBody] CartForCreateDto cartDto)
+		public async Task<ActionResult<CartItemDto>> AddItemToCart([FromBody] CartItemForCreateDto cartItemDto)
 		{
-			var cart = await _cartService.CreateCartAsync(cartDto);
+			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
+			var cart = await _cartService.GetOrCreateCartBySessionAsync(sessionId);
+			var cartItem = await _cartService.AddItemToCartAsync(cart.Id, cartItemDto);
+
 			return StatusCode(201, new ApiResponse<object>
 			{
 				StatusCode = 201,
 				Success = true,
-				Message = "Tạo giỏ hàng mới thành công.",
-				Data = cart
+				Message = "Thêm sản phẩm vào giỏ hàng thành công.",
+				Data = cartItem
 			});
 		}
 
-		[HttpPost("{cartId:int}/clear")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> ClearCart(int cartId)
-		{
-			await _cartService.ClearCartAsync(cartId);
-			return Ok(new ApiResponse<object>
-			{
-				StatusCode = 200,
-				Success = true,
-				Message = $"Xóa tất cả sản phẩm trong giỏ hàng {cartId} thành công."
-			});
-		}
-
-		[HttpPost("merge")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> MergeCarts(int sourceCartId, int destinationCartId)
-		{
-			await _cartService.MergeCartsAsync(sourceCartId, destinationCartId);
-			return Ok(new ApiResponse<object>
-			{
-				StatusCode = 200,
-				Success = true,
-				Message = $"Gộp giỏ hàng thành công."
-			});
-		}
-
-		[HttpGet("{cartId:int}/total")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<ActionResult<decimal>> GetCartTotal(int cartId)
-		{
-			var total = await _cartService.GetCartTotalAsync(cartId);
-			return Ok(new ApiResponse<object>
-			{
-				StatusCode = 200,
-				Success = true,
-				Message = $"Lấy tổng giá trị giỏ hàng {cartId} thành công.",
-				Data = total
-			});
-		}
-
-		[HttpGet("{cartId:int}/items-count")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<ActionResult<int>> GetCartItemsCount(int cartId)
-		{
-			var count = await _cartService.GetCartItemsCountAsync(cartId);
-			return Ok(new ApiResponse<object>
-			{
-				StatusCode = 200,
-				Success = true,
-				Message = $"Lấy số lượng sản phẩm trong giỏ hàng {cartId} thành công.",
-				Data = count
-			});
-		}
-
-		[HttpPut("{cartId:int}/assign-user/{userId:int}")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> AssignCartToUser(int cartId, int userId)
-		{
-			await _cartService.AssignCartToUserAsync(cartId, userId);
-			return Ok(new ApiResponse<object>
-			{
-				StatusCode = 200,
-				Success = true,
-				Message = $"Gán giỏ hàng cho người dùng thành công."
-			});
-		}
-
-		[HttpPut("{cartId:int}/update-session")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> UpdateCartSession(int cartId, [FromBody] string newSessionId)
-		{
-			await _cartService.UpdateCartSessionAsync(cartId, newSessionId);
-			return Ok(new ApiResponse<object>
-			{
-				StatusCode = 200,
-				Success = true,
-				Message = $"Cập nhật SessionId mới cho giỏ hàng thành công."
-			});
-		}
-
-		[HttpPost("{cartId:int}/checkout")]
+		[HttpPut("items/{itemId:int}")]
 		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<ActionResult<OrderDto>> CheckoutCart(int cartId, [FromBody] OrderForCreateDto orderForCreateDto)
+		public async Task<ActionResult<CartItemDto>> UpdateCartItem(int itemId, [FromBody] CartItemForUpdateDto cartItemDto)
 		{
-			var order = await _cartService.CheckoutCart(cartId, orderForCreateDto);
+			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
+			var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
+			var cartItem = await _cartService.UpdateCartItemAsync(cart.Id, itemId, cartItemDto);
+
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = "Cập nhật sản phẩm trong giỏ hàng thành công.",
+				Data = cartItem
+			});
+		}
+
+		[HttpDelete("items/{itemId:int}")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<IActionResult> RemoveCartItem(int itemId)
+		{
+			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
+			var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
+			await _cartService.RemoveCartItemAsync(cart.Id, itemId);
+
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = "Xóa sản phẩm khỏi giỏ hàng thành công."
+			});
+		}
+
+		[HttpPost("checkout")]
+		[ValidationFilter]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		public async Task<ActionResult<OrderDto>> CheckoutCart([FromBody] OrderForCreateDto orderForCreateDto)
+		{
+			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
+			var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
+			var order = await _cartService.CheckoutCartAsync(cart.Id, orderForCreateDto);
+			_sessionService.ClearSessionId(HttpContext);
+
 			return Ok(new ApiResponse<object>
 			{
 				StatusCode = 200,
 				Success = true,
 				Message = "Đặt hàng thành công.",
 				Data = order
+			});
+		}
+
+
+		[HttpPost("clear")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<IActionResult> ClearCart()
+		{
+			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
+			var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
+			await _cartService.ClearCartAsync(cart.Id);
+
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = "Xóa tất cả sản phẩm trong giỏ hàng thành công."
 			});
 		}
 	}

@@ -1,11 +1,4 @@
-﻿using ManboShopAPI.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ManboShopAPI.Domain.Exceptions.NotFound
+﻿namespace ManboShopAPI.Domain.Exceptions.NotFound
 {
 	public sealed class BannerDetailNotFoundException : NotFoundException
 	{

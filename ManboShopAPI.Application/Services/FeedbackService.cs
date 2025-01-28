@@ -5,7 +5,6 @@ using ManboShopAPI.Application.UnitOfWork;
 using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
-using ManboShopAPI.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManboShopAPI.Application.Services

@@ -1,5 +1,4 @@
-﻿using Microsoft.IdentityModel.Logging;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ManboShopAPI.Domain.Entities

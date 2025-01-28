@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 public static class SlugHelper
 {

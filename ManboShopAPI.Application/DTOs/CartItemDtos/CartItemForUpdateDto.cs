@@ -2,12 +2,11 @@
 
 namespace ManboShopAPI.Application.DTOs.CartItemDtos
 {
-	public class CartItemForCreateDto
+	public class CartItemForUpdateDto
 	{
-		[Required(ErrorMessage = "ProductId là bắt buộc.")]
+		[Required(ErrorMessage = "Mã sản phẩm là bắt buộc.")]
 		public int ProductId { get; set; }
-
-		[Required(ErrorMessage = "Quantity là bắt buộc.")]
+		[Required(ErrorMessage = "Số lượng sản phẩm là bắt buộc.")]
 		[Range(1, int.MaxValue, ErrorMessage = "Quantity phải lớn hơn 0.")]
 		public int Quantity { get; set; }
 	}

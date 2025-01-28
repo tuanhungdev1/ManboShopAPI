@@ -3,11 +3,13 @@ using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.FavoriteDtos;
 using ManboShopAPI.Application.DTOs.ProductDtos;
 using ManboShopAPI.Filters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 
 namespace ManboShopAPI.Controllers
 {
+	[Authorize]
 	[ApiController]
 	[Route("api/[controller]")]
 	[Produces(MediaTypeNames.Application.Json)]
@@ -20,17 +22,17 @@ namespace ManboShopAPI.Controllers
 			_favoriteService = favoriteService;
 		}
 
-		[HttpGet("user/{userId}/products")]
+		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<ActionResult<IEnumerable<ProductDto>>> GetUserFavoriteProducts(int userId)
+		public async Task<ActionResult<IEnumerable<ProductDto>>> GetUserFavoriteProducts()
 		{
-			var products = await _favoriteService.GetUserFavoriteProductsAsync(userId);
+			var products = await _favoriteService.GetUserFavoriteProductsAsync(User);
 			return Ok(new ApiResponse<object>
 			{
 				StatusCode = 200,
 				Success = true,
-				Message = $"Lấy danh sách sản phẩm yêu thích cho người dùng với ID {userId} thành công.",
+				Message = $"Lấy danh sách sản phẩm yêu thích cho người dùng thành công.",
 				Data = products
 			});
 		}
@@ -50,33 +52,34 @@ namespace ManboShopAPI.Controllers
 			});
 		}
 
+		
 		[HttpPost]
 		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> AddFavorite([FromBody] FavoriteForCreateDto favoriteForCreateDto)
 		{
-			await _favoriteService.AddFavoriteAsync(favoriteForCreateDto);
+			await _favoriteService.AddFavoriteAsync(User, favoriteForCreateDto);
 			return StatusCode(201, new ApiResponse<object>
 			{
 				StatusCode = 201,
 				Success = true,
-				Message = $"Thêm sản phẩm với ID {favoriteForCreateDto.ProductId} vào danh sách yêu thích của người dùng với ID {favoriteForCreateDto.UserId} thành công."
+				Message = $"Thêm sản phẩm vào danh sách yêu thích của người dùng thành công."
 			});
 		}
 
-		[HttpDelete("{id:int}")]
+		[HttpDelete]
 		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> RemoveFavorite(int id)
+		public async Task<IActionResult> RemoveFavorite([FromBody] FavoriteForCreateDto favoriteForCreateDto)
 		{
-			await _favoriteService.RemoveFavoriteAsync(id);
+			await _favoriteService.RemoveFavoriteAsync(User, favoriteForCreateDto);
 			return Ok(new ApiResponse<object>
 			{
 				StatusCode = 200,
 				Success = true,
-				Message = $"Xóa sản phẩm yêu thích với ID {id} thành công."
+				Message = $"Xóa sản phẩm trong danh sách yêu thích thành công."
 			});
 		}
 	}

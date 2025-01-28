@@ -1,27 +1,34 @@
-﻿using ManboShopAPI.Application.Common.Request;
-using ManboShopAPI.Application.DTOs.CartDtos;
+﻿using ManboShopAPI.Application.DTOs.CartDtos;
+using ManboShopAPI.Application.DTOs.CartItemDtos;
 using ManboShopAPI.Application.DTOs.OrderDtos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application.Contracts
 {
 	public interface ICartService
 	{
-		Task<(IEnumerable<CartDto> cartDtos, MetaData metaData)> GetAllCartAsync(CartRequestParameters cartRequestParameters);
-		Task<CartDto> CreateCartAsync(CartForCreateDto cartForCreateDto);
+		// Các phương thức quản lý Cart cơ bản
 		Task<CartDto> GetCartBySessionIdAsync(string sessionId);
 		Task<CartDto> GetCartByUserIdAsync(int userId);
-		Task<IEnumerable<CartDto>> GetAllCartsAsync();
+		Task<CartDto> GetOrCreateCartBySessionAsync(string sessionId);
+		Task<CartDto> CreateCartAsync(CartForCreateDto cartDto);
+		Task DeleteCartAsync(int cartId);
+
+		// Các phương thức quản lý CartItem
+		Task<CartItemDto> AddItemToCartAsync(int cartId, CartItemForCreateDto cartItemDto);
+		Task<CartItemDto> UpdateCartItemAsync(int cartId, int cartItemId, CartItemForUpdateDto cartItemDto);
+		Task RemoveCartItemAsync(int cartId, int cartItemId);
+		Task<IEnumerable<CartItemDto>> GetCartItemsAsync(int cartId);
 		Task ClearCartAsync(int cartId);
-		Task MergeCartsAsync(int sourceCartId, int destinationCartId);
+
+		// Các phương thức tính toán cơ bản
 		Task<decimal> GetCartTotalAsync(int cartId);
 		Task<int> GetCartItemsCountAsync(int cartId);
+
+		// Các phương thức xử lý session và user
 		Task AssignCartToUserAsync(int cartId, int userId);
-		Task UpdateCartSessionAsync(int cartId, string newSessionId);
-		Task<OrderDto> CheckoutCart(int cartId, OrderForCreateDto orderForCreateDto);
+		Task MergeSessionCartToUserCart(string sessionId, int userId);
+
+		// Phương thức checkout
+		Task<OrderDto> CheckoutCartAsync(int cartId, OrderForCreateDto orderForCreateDto);
 	}
 }

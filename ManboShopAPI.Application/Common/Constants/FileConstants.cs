@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ManboShopAPI.Application.Common.Constants
+﻿namespace ManboShopAPI.Application.Common.Constants
 {
 	public static class FileConstants
 	{

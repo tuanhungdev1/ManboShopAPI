@@ -1,5 +1,4 @@
-﻿using ManboShopAPI.Application.Common.Request;
-using ManboShopAPI.Application.DTOs.AttributeDtos;
+﻿using ManboShopAPI.Application.DTOs.AttributeDtos;
 
 namespace ManboShopAPI.Application.Contracts
 {

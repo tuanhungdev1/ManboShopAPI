@@ -1,6 +1,4 @@
-﻿using ManboShopAPI.Application.Common.Validation;
-
-namespace ManboShopAPI.Application.DTOs.CartDtos
+﻿namespace ManboShopAPI.Application.DTOs.CartDtos
 {
 	public class CartForCreateDto
 	{

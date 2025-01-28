@@ -5,7 +5,6 @@ using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Application.UnitOfWork;

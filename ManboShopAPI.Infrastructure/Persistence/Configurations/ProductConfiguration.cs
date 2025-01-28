@@ -1,5 +1,4 @@
-﻿using Bogus;
-using ManboShopAPI.Domain.Entities;
+﻿using ManboShopAPI.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

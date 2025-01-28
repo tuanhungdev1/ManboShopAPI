@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 using ManboShopAPI.Domain.Entities;
 
 namespace ManboShopAPI.Infrastructure.Persistence.Configurations

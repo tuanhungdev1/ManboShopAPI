@@ -1,10 +1,5 @@
 ﻿using ManboShopAPI.Domain.Exceptions.BadRequest;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManboShopAPI.Application.Common.Helpers
 {
