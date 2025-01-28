@@ -123,14 +123,18 @@ public class CartService : ICartService
 			if (cart == null)
 				throw new CartNotFoundException($"Không tìm thấy giỏ hàng {cartId}");
 
-			var product = await _unitOfWork.ProductRepository.GetByIdAsync(cartItemDto.ProductId);
-			if (product == null)
-				throw new CartNotFoundException($"Không tìm thấy sản phẩm {cartItemDto.ProductId}");
+			var productVariant = await _unitOfWork.ProductVariantValueRepository
+				.FindByCondition(pv => pv.Id == cartItemDto.ProductVariantValueId && pv.ProductId == cartItemDto.ProductId)
+				.FirstOrDefaultAsync();
 
-			if (product.Quantity < cartItemDto.Quantity)
+			if (productVariant == null)
+				throw new CartNotFoundException($"Không tìm thấy biến thể sản phẩm");
+
+			if (productVariant.Stock < cartItemDto.Quantity)
 				throw new CartBadRequestException($"Số lượng sản phẩm trong kho không đủ");
 
-			var existingItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == cartItemDto.ProductId);
+			var existingItem = cart.CartItems.FirstOrDefault(ci =>
+				ci.ProductVariantValueId == cartItemDto.ProductVariantValueId);
 
 			if (existingItem != null)
 			{
@@ -142,7 +146,7 @@ public class CartService : ICartService
 				var cartItem = new CartItem
 				{
 					CartId = cartId,
-					ProductId = cartItemDto.ProductId,
+					ProductVariantValueId = cartItemDto.ProductVariantValueId,
 					Quantity = cartItemDto.Quantity
 				};
 				cart.CartItems.Add(cartItem);
@@ -151,7 +155,8 @@ public class CartService : ICartService
 			await _unitOfWork.SaveChangesAsync();
 			await _unitOfWork.CommitAsync();
 
-			var updatedItem = cart.CartItems.First(ci => ci.ProductId == cartItemDto.ProductId);
+			var updatedItem = cart.CartItems.First(ci =>
+				ci.ProductVariantValueId == cartItemDto.ProductVariantValueId);
 			return _mapper.Map<CartItemDto>(updatedItem);
 		}
 		catch (Exception)
@@ -160,7 +165,6 @@ public class CartService : ICartService
 			throw;
 		}
 	}
-
 	public async Task<CartItemDto> UpdateCartItemAsync(int cartId, int cartItemId, CartItemForUpdateDto cartItemDto)
 	{
 		try
@@ -169,6 +173,7 @@ public class CartService : ICartService
 
 			var cart = await _unitOfWork.CartRepository.FindByCondition(c => c.Id == cartId)
 													 .Include(c => c.CartItems)
+													 .ThenInclude(ci => ci.ProductVariantValue)
 													 .FirstOrDefaultAsync();
 			if (cart == null)
 				throw new CartNotFoundException($"Không tìm thấy giỏ hàng {cartId}");
@@ -177,8 +182,7 @@ public class CartService : ICartService
 			if (cartItem == null)
 				throw new CartNotFoundException($"Không tìm thấy sản phẩm trong giỏ hàng");
 
-			var product = await _unitOfWork.ProductRepository.GetByIdAsync(cartItem.ProductId);
-			if (product.Quantity < cartItemDto.Quantity)
+			if (cartItem.ProductVariantValue.Stock < cartItemDto.Quantity)
 				throw new CartBadRequestException($"Số lượng sản phẩm trong kho không đủ");
 
 			cartItem.Quantity = cartItemDto.Quantity;
@@ -194,7 +198,6 @@ public class CartService : ICartService
 			throw;
 		}
 	}
-
 	public async Task RemoveCartItemAsync(int cartId, int cartItemId)
 	{
 		var cart = await _unitOfWork.CartRepository.FindByCondition(c => c.Id == cartId)
@@ -215,7 +218,8 @@ public class CartService : ICartService
 	{
 		var cart = await _unitOfWork.CartRepository.FindByCondition(c => c.Id == cartId)
 												 .Include(c => c.CartItems)
-												 .ThenInclude(ci => ci.Product)
+												 .ThenInclude(ci => ci.ProductVariantValue)
+												 .ThenInclude(pvv => pvv.Product)
 												 .FirstOrDefaultAsync();
 		if (cart == null)
 			throw new CartNotFoundException($"Không tìm thấy giỏ hàng {cartId}");
@@ -292,7 +296,8 @@ public class CartService : ICartService
 
 			var cart = await _unitOfWork.CartRepository.FindByCondition(c => c.Id == cartId)
 													 .Include(c => c.CartItems)
-													 .ThenInclude(ci => ci.Product)
+													 .ThenInclude(ci => ci.ProductVariantValue)
+													 .ThenInclude(pvv => pvv.Product)
 													 .FirstOrDefaultAsync();
 
 			if (cart == null)
@@ -304,8 +309,9 @@ public class CartService : ICartService
 			// Kiểm tra số lượng tồn kho
 			foreach (var item in cart.CartItems)
 			{
-				if (item.Product.Quantity < item.Quantity)
-					throw new CartBadRequestException($"Sản phẩm {item.Product.Name} không đủ số lượng trong kho");
+				if (item.ProductVariantValue.Stock < item.Quantity)
+					throw new CartBadRequestException(
+						$"Sản phẩm {item.ProductVariantValue.Product.Name} - SKU: {item.ProductVariantValue.Sku} không đủ số lượng trong kho");
 			}
 
 			var order = _mapper.Map<Order>(orderForCreateDto);
@@ -320,15 +326,16 @@ public class CartService : ICartService
 				var orderDetail = new OrderDetail
 				{
 					OrderId = order.Id,
-					ProductId = item.ProductId,
+					ProductId = item.ProductVariantValue.ProductId,
+					ProductVariantValueId = item.ProductVariantValueId,
 					Quantity = item.Quantity,
-					Price = item.Product.Price
+					Price = item.ProductVariantValue.Price
 				};
 				await _unitOfWork.OrderDetailRepository.AddAsync(orderDetail);
 
-				// Cập nhật số lượng sản phẩm
-				item.Product.Quantity -= item.Quantity;
-				_unitOfWork.ProductRepository.Update(item.Product);
+				// Cập nhật số lượng trong kho
+				item.ProductVariantValue.Stock -= item.Quantity;
+				_unitOfWork.ProductVariantValueRepository.Update(item.ProductVariantValue);
 			}
 
 			// Xóa giỏ hàng

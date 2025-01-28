@@ -1,14 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ManboShopAPI.Application.DTOs.CartItemDtos
+public class CartItemForCreateDto
 {
-	public class CartItemForCreateDto
-	{
-		[Required(ErrorMessage = "ProductId là bắt buộc.")]
-		public int ProductId { get; set; }
+	[Required]
+	public int ProductId { get; set; }
 
-		[Required(ErrorMessage = "Quantity là bắt buộc.")]
-		[Range(1, int.MaxValue, ErrorMessage = "Quantity phải lớn hơn 0.")]
-		public int Quantity { get; set; }
-	}
+	[Required]
+	public int ProductVariantValueId { get; set; }
+
+	[Required]
+	[Range(1, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn 0")]
+	public int Quantity { get; set; }
 }

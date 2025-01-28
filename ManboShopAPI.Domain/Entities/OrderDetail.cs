@@ -5,17 +5,20 @@ namespace ManboShopAPI.Domain.Entities
 {
 	public class OrderDetail : BaseEntity
 	{
-        [Required]
-        [Range(0, int.MaxValue)]
-        public int Quantity { get; set; }
-        [Required]
+		[Required]
+		public int OrderId { get; set; }
+		public Order Order { get; set; }
+		[Required]
+		public int ProductId { get; set; }
+		public Product Product { get; set; }
+		[Required]
+		public int ProductVariantValueId { get; set; }
+		public ProductVariantValue ProductVariantValue { get; set; }
+		[Required]
+		[Range(1, int.MaxValue)]
+		public int Quantity { get; set; }
+		[Required]
 		[Column(TypeName = "decimal(18,2)")]
 		public decimal Price { get; set; }
-        public int OrderId { get; set; }
-        public Order Order { get; set; }
-        public int ProductId { get; set; }
-        public Product Product { get; set; }
-        public int? CouponId { get; set; }
-        public Coupon? Coupon { get; set; }
-    }
+	}
 }
