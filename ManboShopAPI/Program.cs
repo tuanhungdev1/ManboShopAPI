@@ -5,6 +5,7 @@ using ManboShopAPI.Extensions;
 using ManboShopAPI.Infrastructure;
 using ManboShopAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -127,11 +128,17 @@ namespace ManboShopAPI
 			builder.Services.Configure<EmailConfiguration>(
 														builder.Configuration.GetSection("EmailConfiguration")
 														);
-			
+
 
 			builder.Services.AddCors(c =>
 			{
-				c.AddPolicy("CorsPolicy", options => options.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("X-Pagination").AllowCredentials());
+				c.AddPolicy("CorsPolicy", options =>
+					options.WithOrigins("http://localhost:5173")
+						   .AllowAnyMethod()
+						   .AllowAnyHeader()
+						   .WithExposedHeaders("X-Pagination")
+						   .AllowCredentials()  // Đảm bảo đã có dòng này
+						   .SetIsOriginAllowed(_ => true)); // Thêm dòng này nếu cần test với nhiều origin
 			});
 
 
@@ -147,8 +154,9 @@ namespace ManboShopAPI
 			app.UseCors("CorsPolicy");
 			app.UseCookiePolicy(new CookiePolicyOptions
 			{
-				MinimumSameSitePolicy = SameSiteMode.None,  // Cho phép gửi cookies cross-origin
-				Secure = CookieSecurePolicy.SameAsRequest,  // Đảm bảo rằng cookies chỉ được gửi qua HTTPS nếu yêu cầu
+				MinimumSameSitePolicy = SameSiteMode.None,
+				Secure = CookieSecurePolicy.Always,  // Thay đổi thành Always
+				HttpOnly = HttpOnlyPolicy.Always     // Thêm dòng này
 			});
 			app.UseMiddleware<TokenValidationMiddleware>();
 			app.UseAuthentication();

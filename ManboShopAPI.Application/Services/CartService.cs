@@ -39,22 +39,42 @@ public class CartService : ICartService
 	{
 		var cart = await _unitOfWork.CartRepository.GetCartByUserIdAsync(userId, true);
 		if (cart == null)
-			throw new CartNotFoundException($"Không tìm thấy giỏ hàng của người dùng {userId}");
+			throw new CartNotFoundException($"Không tìm thấy giỏ hàng của người dùng {userId}", false);
 
 		return _mapper.Map<CartDto>(cart);
 	}
+	public async Task<CartDto> GetOrCreateCartByUserAsync(int userId)
+	{
+		var cart = await _unitOfWork.CartRepository.GetCartByUserIdAsync(userId, true);
 
+		if (cart == null)
+		{
+			var newCart = new Cart
+			{
+				UserId = userId
+			};
+			await _unitOfWork.CartRepository.AddAsync(newCart);
+			await _unitOfWork.SaveChangesAsync();
+			cart = newCart;
+		}
+
+		return _mapper.Map<CartDto>(cart);
+	}
 	public async Task<CartDto> GetOrCreateCartBySessionAsync(string sessionId)
 	{
 		var cart = await _unitOfWork.CartRepository.GetCartBySessionIdAsync(sessionId, true);
 
 		if (cart == null)
 		{
-			var cartForCreate = new CartForCreateDto { SessionId = sessionId };
-			cart = _mapper.Map<Cart>(cartForCreate);
-
-			await _unitOfWork.CartRepository.AddAsync(cart);
+			var newCart = new Cart
+			{
+				SessionId = sessionId
+			};
+			await _unitOfWork.CartRepository.AddAsync(newCart);
 			await _unitOfWork.SaveChangesAsync();
+
+			_logger.LogInfo($"Tạo giỏ hàng mới với SessionId {sessionId}");
+			cart = newCart;
 		}
 
 		return _mapper.Map<CartDto>(cart);

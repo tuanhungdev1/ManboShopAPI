@@ -117,7 +117,7 @@ namespace ManboShopAPI.Controllers
 			if (User.Identity.IsAuthenticated)
 			{
 				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-				var userCart = await _cartService.GetCartByUserIdAsync(userId);
+				var userCart = await _cartService.GetOrCreateCartByUserAsync(userId);
 				cartItem = await _cartService.AddItemToCartAsync(userCart.Id, cartItemDto);
 			}
 			else
@@ -147,7 +147,7 @@ namespace ManboShopAPI.Controllers
 			if (User.Identity.IsAuthenticated)
 			{
 				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-				var userCart = await _cartService.GetCartByUserIdAsync(userId);
+				var userCart = await _cartService.GetOrCreateCartByUserAsync(userId);
 				cartItem = await _cartService.UpdateCartItemAsync(userCart.Id, itemId, cartItemDto);
 			}
 			else
@@ -174,7 +174,7 @@ namespace ManboShopAPI.Controllers
 			if (User.Identity.IsAuthenticated)
 			{
 				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-				var userCart = await _cartService.GetCartByUserIdAsync(userId);
+				var userCart = await _cartService.GetOrCreateCartByUserAsync(userId);
 				await _cartService.RemoveCartItemAsync(userCart.Id, itemId);
 			}
 			else
@@ -203,7 +203,7 @@ namespace ManboShopAPI.Controllers
 			if (User.Identity.IsAuthenticated)
 			{
 				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-				var userCart = await _cartService.GetCartByUserIdAsync(userId);
+				var userCart = await _cartService.GetOrCreateCartByUserAsync(userId);
 				order = await _cartService.CheckoutCartAsync(userCart.Id, orderForCreateDto);
 			}
 			else
@@ -231,7 +231,7 @@ namespace ManboShopAPI.Controllers
 			if (User.Identity.IsAuthenticated)
 			{
 				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-				var userCart = await _cartService.GetCartByUserIdAsync(userId);
+				var userCart = await _cartService.GetOrCreateCartByUserAsync(userId);
 				await _cartService.ClearCartAsync(userCart.Id);
 			}
 			else

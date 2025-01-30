@@ -10,6 +10,7 @@ namespace ManboShopAPI.Application.Contracts
 		Task<CartDto> GetCartBySessionIdAsync(string sessionId);
 		Task<CartDto> GetCartByUserIdAsync(int userId);
 		Task<CartDto> GetOrCreateCartBySessionAsync(string sessionId);
+		Task<CartDto> GetOrCreateCartByUserAsync(int userId);
 		Task<CartDto> CreateCartAsync(CartForCreateDto cartDto);
 		Task DeleteCartAsync(int cartId);
 
