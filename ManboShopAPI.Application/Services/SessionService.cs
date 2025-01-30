@@ -9,40 +9,32 @@ namespace ManboShopAPI.Application.Services
 		private const string CartSessionKey = "CartSessionId";
 		private readonly IConfiguration _configuration;
 
-        public SessionService(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
-
-        public string GetOrCreateSessionId(HttpContext context)
-        {
-            var sessionId = context.Request.Cookies[CartSessionKey];
-
-            if (string.IsNullOrEmpty(sessionId))
-            {
-                sessionId = Guid.NewGuid().ToString();
-                StoreSessionId(context, sessionId);
-            }
-
-            return sessionId;
-        }
-
-        public void StoreSessionId(HttpContext context, string sessionId)
+		public SessionService(IConfiguration configuration)
 		{
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(30)
-            };
-
-            context.Response.Cookies.Append(CartSessionKey, sessionId, cookieOptions);
+			_configuration = configuration;
 		}
 
-        public void ClearSessionId(HttpContext context)
-        {
-            context.Response.Cookies.Delete(CartSessionKey);
-        }
-    }
+		public string GetSessionId(HttpContext context)
+		{
+			return context.Request.Cookies[CartSessionKey];
+		}
+
+		public void CreateNewSessionId(HttpContext context)
+		{
+			var sessionId = Guid.NewGuid().ToString();
+			var cookieOptions = new CookieOptions
+			{
+				HttpOnly = true,
+				Secure = false,
+				SameSite = SameSiteMode.Lax,
+				Expires = DateTime.UtcNow.AddDays(30)
+			};
+			context.Response.Cookies.Append(CartSessionKey, sessionId, cookieOptions);
+		}
+
+		public void ClearSessionId(HttpContext context)
+		{
+			context.Response.Cookies.Delete(CartSessionKey);
+		}
+	}
 }

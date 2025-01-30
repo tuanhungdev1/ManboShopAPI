@@ -7,6 +7,7 @@ using ManboShopAPI.Application.DTOs.OrderDtos;
 using ManboShopAPI.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
+using System.Security.Claims;
 
 namespace ManboShopAPI.Controllers
 {
@@ -29,16 +30,30 @@ namespace ManboShopAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<ActionResult<CartDto>> GetCart()
 		{
-			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
-			var cart = await _cartService.GetOrCreateCartBySessionAsync(sessionId);
-
-			return Ok(new ApiResponse<object>
+			if (User.Identity.IsAuthenticated)
 			{
-				StatusCode = 200,
-				Success = true,
-				Message = "Lấy thông tin giỏ hàng thành công.",
-				Data = cart
-			});
+				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+				var cart = await _cartService.GetCartByUserIdAsync(userId);
+				return Ok(new ApiResponse<object>
+				{
+					StatusCode = 200,
+					Success = true,
+					Message = "Lấy thông tin giỏ hàng thành công.",
+					Data = cart
+				});
+			}
+			else
+			{
+				var sessionId = _sessionService.GetSessionId(HttpContext);
+				var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
+				return Ok(new ApiResponse<object>
+				{
+					StatusCode = 200,
+					Success = true,
+					Message = "Lấy thông tin giỏ hàng thành công.",
+					Data = cart
+				});
+			}
 		}
 
 		[HttpGet("session/{sessionId}")]
@@ -76,9 +91,12 @@ namespace ManboShopAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> MergeSessionCartToUserCart(int userId)
 		{
-			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
-			await _cartService.MergeSessionCartToUserCart(sessionId, userId);
-			_sessionService.ClearSessionId(HttpContext);
+			var sessionId = _sessionService.GetSessionId(HttpContext);
+			if (!string.IsNullOrEmpty(sessionId))
+			{
+				await _cartService.MergeSessionCartToUserCart(sessionId, userId);
+				_sessionService.ClearSessionId(HttpContext);
+			}
 
 			return Ok(new ApiResponse<object>
 			{
@@ -94,9 +112,20 @@ namespace ManboShopAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<ActionResult<CartItemDto>> AddItemToCart([FromBody] CartItemForCreateDto cartItemDto)
 		{
-			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
-			var cart = await _cartService.GetOrCreateCartBySessionAsync(sessionId);
-			var cartItem = await _cartService.AddItemToCartAsync(cart.Id, cartItemDto);
+			CartItemDto cartItem;
+
+			if (User.Identity.IsAuthenticated)
+			{
+				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+				var userCart = await _cartService.GetCartByUserIdAsync(userId);
+				cartItem = await _cartService.AddItemToCartAsync(userCart.Id, cartItemDto);
+			}
+			else
+			{
+				var sessionId = _sessionService.GetSessionId(HttpContext);
+				var sessionCart = await _cartService.GetCartBySessionIdAsync(sessionId);
+				cartItem = await _cartService.AddItemToCartAsync(sessionCart.Id, cartItemDto);
+			}
 
 			return StatusCode(201, new ApiResponse<object>
 			{
@@ -113,9 +142,20 @@ namespace ManboShopAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<ActionResult<CartItemDto>> UpdateCartItem(int itemId, [FromBody] CartItemForUpdateDto cartItemDto)
 		{
-			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
-			var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
-			var cartItem = await _cartService.UpdateCartItemAsync(cart.Id, itemId, cartItemDto);
+			CartItemDto cartItem;
+
+			if (User.Identity.IsAuthenticated)
+			{
+				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+				var userCart = await _cartService.GetCartByUserIdAsync(userId);
+				cartItem = await _cartService.UpdateCartItemAsync(userCart.Id, itemId, cartItemDto);
+			}
+			else
+			{
+				var sessionId = _sessionService.GetSessionId(HttpContext);
+				var sessionCart = await _cartService.GetCartBySessionIdAsync(sessionId);
+				cartItem = await _cartService.UpdateCartItemAsync(sessionCart.Id, itemId, cartItemDto);
+			}
 
 			return Ok(new ApiResponse<object>
 			{
@@ -131,9 +171,18 @@ namespace ManboShopAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<IActionResult> RemoveCartItem(int itemId)
 		{
-			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
-			var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
-			await _cartService.RemoveCartItemAsync(cart.Id, itemId);
+			if (User.Identity.IsAuthenticated)
+			{
+				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+				var userCart = await _cartService.GetCartByUserIdAsync(userId);
+				await _cartService.RemoveCartItemAsync(userCart.Id, itemId);
+			}
+			else
+			{
+				var sessionId = _sessionService.GetSessionId(HttpContext);
+				var sessionCart = await _cartService.GetCartBySessionIdAsync(sessionId);
+				await _cartService.RemoveCartItemAsync(sessionCart.Id, itemId);
+			}
 
 			return Ok(new ApiResponse<object>
 			{
@@ -149,10 +198,21 @@ namespace ManboShopAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<ActionResult<OrderDto>> CheckoutCart([FromBody] OrderForCreateDto orderForCreateDto)
 		{
-			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
-			var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
-			var order = await _cartService.CheckoutCartAsync(cart.Id, orderForCreateDto);
-			_sessionService.ClearSessionId(HttpContext);
+			OrderDto order;
+
+			if (User.Identity.IsAuthenticated)
+			{
+				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+				var userCart = await _cartService.GetCartByUserIdAsync(userId);
+				order = await _cartService.CheckoutCartAsync(userCart.Id, orderForCreateDto);
+			}
+			else
+			{
+				var sessionId = _sessionService.GetSessionId(HttpContext);
+				var sessionCart = await _cartService.GetCartBySessionIdAsync(sessionId);
+				order = await _cartService.CheckoutCartAsync(sessionCart.Id, orderForCreateDto);
+				_sessionService.ClearSessionId(HttpContext);
+			}
 
 			return Ok(new ApiResponse<object>
 			{
@@ -163,15 +223,23 @@ namespace ManboShopAPI.Controllers
 			});
 		}
 
-
 		[HttpPost("clear")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<IActionResult> ClearCart()
 		{
-			var sessionId = _sessionService.GetOrCreateSessionId(HttpContext);
-			var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
-			await _cartService.ClearCartAsync(cart.Id);
+			if (User.Identity.IsAuthenticated)
+			{
+				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+				var userCart = await _cartService.GetCartByUserIdAsync(userId);
+				await _cartService.ClearCartAsync(userCart.Id);
+			}
+			else
+			{
+				var sessionId = _sessionService.GetSessionId(HttpContext);
+				var sessionCart = await _cartService.GetCartBySessionIdAsync(sessionId);
+				await _cartService.ClearCartAsync(sessionCart.Id);
+			}
 
 			return Ok(new ApiResponse<object>
 			{

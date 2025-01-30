@@ -18,17 +18,14 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 				.OnDelete(DeleteBehavior.Cascade);
 
 
-			builder.HasOne(o => o.Product)
+			builder.HasOne(o => o.ProductVariantValue)
 				.WithMany(p => p.OrderDetails)
-				.HasForeignKey(p => p.ProductId)
+				.HasForeignKey(p => p.ProductVariantValueId)
 				.IsRequired(true)
 				.OnDelete(DeleteBehavior.Cascade);
 
-			builder.HasOne(o => o.Coupon)
-				.WithMany(p => p.OrderDetails)
-				.HasForeignKey(p => p.CouponId)
-				.IsRequired(false)
-				.OnDelete(DeleteBehavior.SetNull);
+			
+
 		}
 	}
 }

@@ -34,11 +34,9 @@ namespace ManboShopAPI.Domain.Entities
         public Brand? Brand { get; set; }
         public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
         public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
-        public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 		public ICollection<NewsDetail> NewsDetails { get; set; } = new List<NewsDetail>();
 		public ICollection<BannerDetail> BannerDetails { get; set; } = new List<BannerDetail>();
 		public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
-        public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
         public ICollection<ProductAttributeValue> ProductAttributeValues { get; set; } = new List<ProductAttributeValue>();
         public ICollection<ProductVariantValue> ProductVariantValues { get; set; } = new List<ProductVariantValue>();
     }

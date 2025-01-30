@@ -131,15 +131,9 @@ namespace ManboShopAPI
 
 			builder.Services.AddCors(c =>
 			{
-				c.AddPolicy("CorsPolicy", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("X-Pagination"));
+				c.AddPolicy("CorsPolicy", options => options.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("X-Pagination").AllowCredentials());
 			});
 
-
-			builder.Services.Configure<CookiePolicyOptions>(options =>
-			{
-				options.CheckConsentNeeded = context => true;
-				options.MinimumSameSitePolicy = SameSiteMode.Strict;
-			});
 
 			var app = builder.Build();
 			if (app.Environment.IsDevelopment())
@@ -151,6 +145,11 @@ namespace ManboShopAPI
 			app.ConfigureExceptionHandler();
 			app.UseHttpsRedirection();
 			app.UseCors("CorsPolicy");
+			app.UseCookiePolicy(new CookiePolicyOptions
+			{
+				MinimumSameSitePolicy = SameSiteMode.None,  // Cho phép gửi cookies cross-origin
+				Secure = CookieSecurePolicy.SameAsRequest,  // Đảm bảo rằng cookies chỉ được gửi qua HTTPS nếu yêu cầu
+			});
 			app.UseMiddleware<TokenValidationMiddleware>();
 			app.UseAuthentication();
 			app.UseAuthorization();

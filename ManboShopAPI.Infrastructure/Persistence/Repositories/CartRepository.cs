@@ -15,7 +15,8 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 			var query = _dbSet
 						.Include(c => c.CartItems)
-						.ThenInclude(ci => ci.Product)
+						.ThenInclude(ci => ci.ProductVariantValue)
+						.ThenInclude(pvv => pvv.Product)
 						.Include(c => c.User)
 						.AsNoTracking().AsQueryable();
 
@@ -58,7 +59,8 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 			{
 				query = query
 					.Include(c => c.CartItems)
-					.ThenInclude(ci => ci.Product);
+					.ThenInclude(ci => ci.ProductVariantValue)
+						.ThenInclude(pvv => pvv.Product);
 			}
 
 			return await query
@@ -73,7 +75,8 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 			{
 				query = query
 					.Include(c => c.CartItems)
-					.ThenInclude(ci => ci.Product);
+					.ThenInclude(ci => ci.ProductVariantValue)
+						.ThenInclude(pvv => pvv.Product);
 			}
 
 			return await query
@@ -89,7 +92,8 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 			return await _dbSet
 				.Include(c => c.CartItems)
-				.ThenInclude(ci => ci.Product)
+				.ThenInclude(ci => ci.ProductVariantValue)
+						.ThenInclude(pvv => pvv.Product)
 				.Include(c => c.User)
 				.ToListAsync();
 		}
@@ -131,7 +135,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 			foreach (var sourceItem in sourceCart.CartItems)
 			{
 				var existingItem = destinationCart.CartItems
-					.FirstOrDefault(i => i.ProductId == sourceItem.ProductId);
+					.FirstOrDefault(i => i.ProductVariantValueId == sourceItem.ProductVariantValueId);
 
 				if (existingItem != null)
 				{
@@ -141,7 +145,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				{
 					destinationCart.CartItems.Add(new CartItem
 					{
-						ProductId = sourceItem.ProductId,
+						ProductVariantValueId = sourceItem.ProductVariantValueId,
 						Quantity = sourceItem.Quantity,
 						CartId = destinationCartId
 					});
@@ -157,7 +161,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 			return await _dbSet
 				.Where(c => c.Id == cartId)
 				.SelectMany(c => c.CartItems)
-				.SumAsync(ci => ci.Quantity * ci.Product.Price);
+				.SumAsync(ci => ci.Quantity * ci.ProductVariantValue.Price);
 		}
 
 		public async Task UpdateCartSessionAsync(int cartId, string newSessionId)

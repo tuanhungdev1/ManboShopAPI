@@ -36,12 +36,12 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 
 		public IQueryable<T> FindAll(bool asNoTracking = false) =>
-			!asNoTracking ?
+			asNoTracking ?
 			_context.Set<T>().AsNoTracking() :
 			_context.Set<T>();
 
 		public IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression, bool asNoTracking = false) =>
-			!asNoTracking ?
+			asNoTracking ?
 			_context.Set<T>().Where(expression).AsNoTracking() :
 			_context.Set<T>().Where(expression);
 

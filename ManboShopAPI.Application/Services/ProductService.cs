@@ -434,11 +434,7 @@ namespace ManboShopAPI.Application.Services
 					await _productImageRepository.SaveChangesAsync();
 				}
 
-				// 2. Xóa cart items
-				var cartItems = await _unitOfWork.CartItemRepository
-					.FindByCondition(ci => ci.ProductId == productId)
-					.ToListAsync();
-				_unitOfWork.CartItemRepository.RemoveRange(cartItems);
+				
 
 				// 3. Xóa product attributes
 				_unitOfWork.ProductAttributeValueRepository.RemoveRange(existingProduct.ProductAttributeValues);
@@ -447,10 +443,10 @@ namespace ManboShopAPI.Application.Services
 				_unitOfWork.ProductVariantValueRepository.RemoveRange(existingProduct.ProductVariantValues);
 
 				// 5. Xóa order details
-				var orderDetails = await _unitOfWork.OrderDetailRepository
-					.FindByCondition(od => od.ProductId == productId)
-					.ToListAsync();
-				_unitOfWork.OrderDetailRepository.RemoveRange(orderDetails);
+				//var orderDetails = await _unitOfWork.OrderDetailRepository
+				//	.FindByCondition(od => od.ProductVariantValueId == productId)
+				//	.ToListAsync();
+				//_unitOfWork.OrderDetailRepository.RemoveRange(orderDetails);
 
 				// 6. Xóa favorites
 				_unitOfWork.FavoriteRepository.RemoveRange(existingProduct.Favorites);

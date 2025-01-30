@@ -117,8 +117,9 @@ public class CartService : ICartService
 		{
 			await _unitOfWork.BeginTransactionAsync();
 
-			var cart = await _unitOfWork.CartRepository.FindByCondition(c => c.Id == cartId)
+			var cart = await _unitOfWork.CartRepository.FindByCondition(c => c.Id == cartId, true)
 													 .Include(c => c.CartItems)
+													 .AsTracking()
 													 .FirstOrDefaultAsync();
 			if (cart == null)
 				throw new CartNotFoundException($"Không tìm thấy giỏ hàng {cartId}");
@@ -326,7 +327,6 @@ public class CartService : ICartService
 				var orderDetail = new OrderDetail
 				{
 					OrderId = order.Id,
-					ProductId = item.ProductVariantValue.ProductId,
 					ProductVariantValueId = item.ProductVariantValueId,
 					Quantity = item.Quantity,
 					Price = item.ProductVariantValue.Price

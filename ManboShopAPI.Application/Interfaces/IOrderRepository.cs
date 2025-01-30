@@ -6,7 +6,6 @@ namespace ManboShopAPI.Application.Interfaces
 {
 	public interface IOrderRepository : IRepositoryBase<Order>
 	{
-		Task<bool> IsOrderExistingBySessionIdAsync(string sessionId);
 		Task<PagedList<Order>> FetchAllOrderAsync(OrderRequestParameters orderRequestParameters);
 		Task<IEnumerable<Order>> GetOrdersByUserIdAsync(int userId, bool asNoTracking = false);
 	}

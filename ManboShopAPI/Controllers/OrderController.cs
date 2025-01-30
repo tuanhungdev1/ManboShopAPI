@@ -67,35 +67,35 @@ namespace ManboShopAPI.Controllers
 			});
 		}
 
-		[HttpPut("{id:int}")]
-		[ValidationFilter]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderForUpdateDto orderDto)
-		{
-			await _orderService.UpdateOrderAsync(id, orderDto);
-			return Ok(new ApiResponse<object>
-			{
-				StatusCode = 200,
-				Success = true,
-				Message = $"Cập nhật dữ liệu đơn hàng với Id {id} thành công."
-			});
-		}
+		//[HttpPut("{id:int}")]
+		//[ValidationFilter]
+		//[ProducesResponseType(StatusCodes.Status204NoContent)]
+		//[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		//[ProducesResponseType(StatusCodes.Status404NotFound)]
+		//public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderForUpdateDto orderDto)
+		//{
+		//	await _orderService.UpdateOrderAsync(id, orderDto);
+		//	return Ok(new ApiResponse<object>
+		//	{
+		//		StatusCode = 200,
+		//		Success = true,
+		//		Message = $"Cập nhật dữ liệu đơn hàng với Id {id} thành công."
+		//	});
+		//}
 
-		[HttpDelete("{id:int}")]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> DeleteOrder(int id)
-		{
-			await _orderService.DeleteOrderAsync(id);
-			return Ok(new ApiResponse<object>
-			{
-				StatusCode = 200,
-				Success = true,
-				Message = $"Xóa đơn hàng với Id {id} thành công."
-			});
-		}
+		//[HttpDelete("{id:int}")]
+		//[ProducesResponseType(StatusCodes.Status204NoContent)]
+		//[ProducesResponseType(StatusCodes.Status404NotFound)]
+		//public async Task<IActionResult> DeleteOrder(int id)
+		//{
+		//	await _orderService.DeleteOrderAsync(id);
+		//	return Ok(new ApiResponse<object>
+		//	{
+		//		StatusCode = 200,
+		//		Success = true,
+		//		Message = $"Xóa đơn hàng với Id {id} thành công."
+		//	});
+		//}
 
 		[HttpGet("user/{userId:int}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]

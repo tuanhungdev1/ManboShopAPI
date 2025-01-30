@@ -4,8 +4,8 @@ namespace ManboShopAPI.Application.Contracts
 {
 	public interface ISessionService
 	{
-		string GetOrCreateSessionId(HttpContext context);
-		void StoreSessionId(HttpContext context, string sessionId);
+		string GetSessionId(HttpContext context);
+		void CreateNewSessionId(HttpContext context);
 		void ClearSessionId(HttpContext context);
 	}
 }

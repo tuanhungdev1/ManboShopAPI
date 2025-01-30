@@ -6,7 +6,6 @@ namespace ManboShopAPI.Middleware
 	public class CartSessionMiddleware
 	{
 		private readonly RequestDelegate _next;
-
 		public CartSessionMiddleware(RequestDelegate next)
 		{
 			_next = next;
@@ -14,24 +13,39 @@ namespace ManboShopAPI.Middleware
 
 		public async Task InvokeAsync(HttpContext context, ICartService cartService, ISessionService sessionService)
 		{
-			// Kiểm tra nếu người dùng vừa đăng nhập
-			if (context.User.Identity.IsAuthenticated)
+			if (context.Request.Path.StartsWithSegments("/api/Cart") ||
+				context.Request.Path.StartsWithSegments("/Cart"))
 			{
-				var sessionId = sessionService.GetOrCreateSessionId(context);
-				var userId = int.Parse(context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+				var existingSessionId = sessionService.GetSessionId(context); // Phương thức mới chỉ để lấy sessionId hiện có
+				var isAuthenticated = context.User.Identity.IsAuthenticated;
 
-				// Gộp giỏ hàng session vào giỏ hàng người dùng
-				await cartService.MergeSessionCartToUserCart(sessionId, userId);
-
-				// Xóa session ID cũ
-				sessionService.ClearSessionId(context);
+				if (isAuthenticated)
+				{
+					if (!string.IsNullOrEmpty(existingSessionId))
+					{
+						// Người dùng đã đăng nhập và có session ID -> thực hiện merge
+						var userId = int.Parse(context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+						await cartService.MergeSessionCartToUserCart(existingSessionId, userId);
+						sessionService.ClearSessionId(context);
+					}
+					// Nếu không có existingSessionId thì không cần làm gì, 
+					// vì người dùng đã đăng nhập sẽ sử dụng cart dựa trên userId
+				}
+				else
+				{
+					if (string.IsNullOrEmpty(existingSessionId))
+					{
+						// Chưa có session ID và chưa đăng nhập -> tạo mới session ID
+						sessionService.CreateNewSessionId(context);
+					}
+					// Nếu đã có existingSessionId thì giữ nguyên để tiếp tục sử dụng
+				}
 			}
 
 			await _next(context);
 		}
 	}
 
-	// Extension method để đăng ký middleware
 	public static class CartSessionMiddlewareExtensions
 	{
 		public static IApplicationBuilder UseCartSession(this IApplicationBuilder builder)

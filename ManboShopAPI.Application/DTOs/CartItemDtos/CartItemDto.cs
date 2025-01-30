@@ -1,4 +1,5 @@
 ﻿using ManboShopAPI.Application.DTOs.ProductDtos;
+using ManboShopAPI.Application.DTOs.VariantDtos;
 
 namespace ManboShopAPI.Application.DTOs.CartItemDtos
 {
@@ -7,10 +8,16 @@ namespace ManboShopAPI.Application.DTOs.CartItemDtos
 		public int Id { get; set; }
 		public int CartId { get; set; }
 		public int ProductId { get; set; }
-		public int ProductVariantValueId { get; set; }
-		public string ProductName { get; set; }
-		public string ProductVariantSku { get; set; }
+		public string Sku { get; set; }
 		public decimal Price { get; set; }
+		public decimal? OldPrice { get; set; }
+		public decimal TotalPrice => Price * Quantity;
+		public int ProductVariantValueId { get; set; }
+        public ProductVariantValueDto ProductVariantValue { get; set; }
+        public ProductDto Product { get; set; }
+        public int Stock { get; set; }
 		public int Quantity { get; set; }
+		public DateTime CreatedAt { get; set; }
+		public DateTime? UpdatedAt { get; set; }
 	}
 }

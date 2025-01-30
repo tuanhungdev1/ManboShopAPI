@@ -10,9 +10,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 		public void Configure(EntityTypeBuilder<CartItem> builder)
 		{
 
-			builder.HasOne(ci => ci.Product)
+			builder.HasOne(ci => ci.ProductVariantValue)
 				.WithMany(p => p.CartItems)
-				.HasForeignKey(bd => bd.ProductId)
+				.HasForeignKey(bd => bd.ProductVariantValueId)
 				.IsRequired(true)
 				.OnDelete(DeleteBehavior.Cascade);
 

@@ -15,8 +15,9 @@ public class OrderDetailRepository : RepositoryBase<OrderDetail>, IOrderDetailRe
 	{
 		IQueryable<OrderDetail> query = _dbSet
 			.Include(od => od.Order)
-			.Include(od => od.Product)
-		.Include(od => od.Coupon);
+			.Include(od => od.ProductVariantValue)
+			.ThenInclude(pvv => pvv.Product)
+		;
 
 		if (asNoTracking)
 			query = query.AsNoTracking();
@@ -27,8 +28,8 @@ public class OrderDetailRepository : RepositoryBase<OrderDetail>, IOrderDetailRe
 	public async Task<IEnumerable<OrderDetail>> GetOrderDetailsByOrderIdAsync(int orderId, bool asNoTracking = false)
 	{
 		IQueryable<OrderDetail> query = _dbSet
-			.Include(od => od.Product)
-			.Include(od => od.Coupon)
+			.Include(od => od.ProductVariantValue)
+			.ThenInclude(pvv => pvv.Product)
 			.Where(od => od.OrderId == orderId);
 
 		if (asNoTracking)
@@ -41,8 +42,9 @@ public class OrderDetailRepository : RepositoryBase<OrderDetail>, IOrderDetailRe
 	{
 		IQueryable<OrderDetail> query = _dbSet
 			.Include(od => od.Order)
-			.Include(od => od.Coupon)
-			.Where(od => od.ProductId == productId);
+			.Include(od => od.ProductVariantValue)
+			.ThenInclude(pvv => pvv.Product)
+			.Where(od => od.ProductVariantValueId == productId);
 
 		if (asNoTracking)
 			query = query.AsNoTracking();
@@ -67,9 +69,9 @@ public class OrderDetailRepository : RepositoryBase<OrderDetail>, IOrderDetailRe
 		bool asNoTracking = false)
 	{
 		IQueryable<OrderDetail> query = _dbSet
-			.Include(od => od.Order)
-			.Include(od => od.Product)
-			.Include(od => od.Coupon);
+			.Include(od => od.Order).Include(od => od.ProductVariantValue)
+			.ThenInclude(pvv => pvv.Product)
+			;
 
 		if (filter != null)
 			query = query.Where(filter);

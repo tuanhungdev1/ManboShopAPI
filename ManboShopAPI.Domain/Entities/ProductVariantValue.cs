@@ -20,5 +20,7 @@ namespace ManboShopAPI.Domain.Entities
         [Required]
 		[MaxLength(100)]
         public string Sku { get; set; }
-    }
+		public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+		public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+	}
 }

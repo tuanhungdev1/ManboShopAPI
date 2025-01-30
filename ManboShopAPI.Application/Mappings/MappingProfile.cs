@@ -185,7 +185,15 @@ namespace ManboShopAPI.Application.Mappings
 
 			// CART ITEM
 
-			CreateMap<CartItem, CartItemDto>();
+			// Ví dụ sử dụng AutoMapper
+			CreateMap<CartItem, CartItemDto>()
+				.ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductVariantValue.ProductId))
+				.ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.ProductVariantValue.Sku))
+				.ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.ProductVariantValue.Price))
+				.ForMember(dest => dest.OldPrice, opt => opt.MapFrom(src => src.ProductVariantValue.OldPrice))
+				.ForMember(dest => dest.Stock, opt => opt.MapFrom(src => src.ProductVariantValue.Stock))
+				.ForMember(dest => dest.ProductVariantValue, opt => opt.MapFrom(src => src.ProductVariantValue))
+				.ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.ProductVariantValue.Product));
 			CreateMap<CartItemForCreateDto, CartItem>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			//CART ITEM
