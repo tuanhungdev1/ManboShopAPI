@@ -1,5 +1,4 @@
-﻿using ManboShopAPI.Application.Common.Request;
-using ManboShopAPI.Application.Common.Response;
+﻿using ManboShopAPI.Application.Common.Response;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.CartDtos;
 using ManboShopAPI.Application.DTOs.CartItemDtos;
@@ -44,8 +43,24 @@ namespace ManboShopAPI.Controllers
 			}
 			else
 			{
-				var sessionId = _sessionService.GetSessionId(HttpContext);
+				// Try to get existing session ID or create a new one if not exists
+				var sessionId = HttpContext.Request.Cookies["CartSessionId"];
+				if (string.IsNullOrEmpty(sessionId))
+				{
+					// If no session ID exists, create a new one
+					sessionId = await _sessionService.CreateNewSessionId(HttpContext);
+
+					// Create a new cart for this session
+					var newCart = new CartForCreateDto
+					{
+						SessionId = sessionId
+					};
+					await _cartService.CreateCartAsync(newCart);
+				}
+
+				// Retrieve cart by session ID
 				var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
+
 				return Ok(new ApiResponse<object>
 				{
 					StatusCode = 200,

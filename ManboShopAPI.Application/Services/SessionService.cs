@@ -8,18 +8,21 @@ namespace ManboShopAPI.Application.Services
 	{
 		private const string CartSessionKey = "CartSessionId";
 		private readonly IConfiguration _configuration;
+		
 
 		public SessionService(IConfiguration configuration)
 		{
 			_configuration = configuration;
+			
 		}
 
 		public string GetSessionId(HttpContext context)
 		{
-			return context.Request.Cookies[CartSessionKey];
+			context.Request.Cookies.TryGetValue(CartSessionKey, out var sessionId);
+			return sessionId;
 		}
 
-		public void CreateNewSessionId(HttpContext context)
+		public async Task<string> CreateNewSessionId(HttpContext context)
 		{
 			var sessionId = Guid.NewGuid().ToString();
 			var cookieOptions = new CookieOptions
@@ -30,6 +33,7 @@ namespace ManboShopAPI.Application.Services
 				Expires = DateTime.UtcNow.AddDays(30)
 			};
 			context.Response.Cookies.Append(CartSessionKey, sessionId, cookieOptions);
+			return sessionId;
 		}
 
 		public void ClearSessionId(HttpContext context)

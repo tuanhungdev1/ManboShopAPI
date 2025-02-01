@@ -1,44 +1,39 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace ManboShopAPI.Application.DTOs.AddressDtos
+﻿namespace ManboShopAPI.Application.DTOs.AddressDtos
 {
+	using System.ComponentModel.DataAnnotations;
+
 	public class AddressForCreateDto
 	{
-		[Required(ErrorMessage = "UserId is required.")]
-		public int UserId { get; set; }
-
-		[Required(ErrorMessage = "Name is required.")]
-		[MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters.")]
+		[Required(ErrorMessage = "Họ và tên không được để trống.")]
+		[MaxLength(100, ErrorMessage = "Họ và tên không được vượt quá 100 ký tự.")]
 		public string Name { get; set; }
 
-		[Required(ErrorMessage = "PhoneNumber is required.")]
-		[MaxLength(20, ErrorMessage = "PhoneNumber cannot exceed 20 characters.")]
+		[Required(ErrorMessage = "Số điện thoại không được để trống.")]
+		[MaxLength(20, ErrorMessage = "Số điện thoại không được vượt quá 20 ký tự.")]
+		[Phone(ErrorMessage = "Số điện thoại không hợp lệ.")]
 		public string PhoneNumber { get; set; }
 
-		[Required(ErrorMessage = "FlatOrHouse is required.")]
-		[MaxLength(200, ErrorMessage = "FlatOrHouse cannot exceed 200 characters.")]
-		public string FlatOrHouse { get; set; }
+		[Required(ErrorMessage = "Địa chỉ chi tiết không được để trống.")]
+		[MaxLength(1000, ErrorMessage = "Địa chỉ chi tiết không được vượt quá 1000 ký tự.")]
+		public string AddressLine { get; set; }
 
-		[Required(ErrorMessage = "BuildingOrCompanyOrApartment is required.")]
-		[MaxLength(200, ErrorMessage = "BuildingOrCompanyOrApartment cannot exceed 200 characters.")]
-		public string BuildingOrCompanyOrApartment { get; set; }
-
-		[Required(ErrorMessage = "AreaOrColonyOrStreetOrSectorOrVillage is required.")]
-		[MaxLength(200, ErrorMessage = "AreaOrColonyOrStreetOrSectorOrVillage cannot exceed 200 characters.")]
-		public string AreaOrColonyOrStreetOrSectorOrVillage { get; set; }
-
-		[Required(ErrorMessage = "City is required.")]
-		[MaxLength(200, ErrorMessage = "City cannot exceed 200 characters.")]
+		[Required(ErrorMessage = "Thành phố không được để trống.")]
+		[MaxLength(200, ErrorMessage = "Thành phố không được vượt quá 200 ký tự.")]
 		public string City { get; set; }
 
-		[Required(ErrorMessage = "PinCode is required.")]
-		[MaxLength(100, ErrorMessage = "PinCode cannot exceed 100 characters.")]
-		public string PinCode { get; set; }
-
-		[Required(ErrorMessage = "State is required.")]
-		[MaxLength(100, ErrorMessage = "State cannot exceed 100 characters.")]
+		[Required(ErrorMessage = "Tỉnh/Bang không được để trống.")]
+		[MaxLength(200, ErrorMessage = "Tỉnh/Bang không được vượt quá 200 ký tự.")]
 		public string State { get; set; }
+
+		[Required(ErrorMessage = "Quốc gia không được để trống.")]
+		[MaxLength(200, ErrorMessage = "Quốc gia không được vượt quá 200 ký tự.")]
+		public string Country { get; set; }
+
+		[Required(ErrorMessage = "Mã bưu điện không được để trống.")]
+		[MaxLength(100, ErrorMessage = "Mã bưu điện không được vượt quá 100 ký tự.")]
+		public string PostalCode { get; set; }
 
 		public bool IsDefault { get; set; }
 	}
+
 }

@@ -39,6 +39,7 @@ namespace ManboShopAPI.Infrastructure
 			services.AddScoped<IVariantRepository, VariantRepository>();
 			services.AddScoped<IProductVariantValueRepository, ProductVariantValueRepository>();
 			services.AddScoped<IVariantValueRepository, VariantValueRepository>();
+			services.AddScoped<IAddressRepository, AddressRepository>();
 			//Đăng Kí Unit Of Work
 			services.AddScoped<IUnitOfWork, UnitOfWork>();
 

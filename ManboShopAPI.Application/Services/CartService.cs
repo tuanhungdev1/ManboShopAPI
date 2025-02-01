@@ -121,6 +121,10 @@ public class CartService : ICartService
 		}
 	}
 
+	public async Task<bool> DoesCartExistAsync(string sessionId) { 
+		return await _unitOfWork.CartRepository.IsCartExistsAsync(sessionId);
+	}
+
 	public async Task DeleteCartAsync(int cartId)
 	{
 		var cart = await _unitOfWork.CartRepository.GetByIdAsync(cartId);
@@ -316,6 +320,7 @@ public class CartService : ICartService
 			await _unitOfWork.BeginTransactionAsync();
 
 			var cart = await _unitOfWork.CartRepository.FindByCondition(c => c.Id == cartId)
+													 .AsTracking()
 													 .Include(c => c.CartItems)
 													 .ThenInclude(ci => ci.ProductVariantValue)
 													 .ThenInclude(pvv => pvv.Product)
@@ -353,6 +358,9 @@ public class CartService : ICartService
 				};
 				await _unitOfWork.OrderDetailRepository.AddAsync(orderDetail);
 
+				if(item.ProductVariantValue.Stock < item.Quantity)
+					throw new CartBadRequestException(
+						$"Sản phẩm {item.ProductVariantValue.Product.Name} - SKU: {item.ProductVariantValue.Sku} không đủ số lượng trong kho");
 				// Cập nhật số lượng trong kho
 				item.ProductVariantValue.Stock -= item.Quantity;
 				_unitOfWork.ProductVariantValueRepository.Update(item.ProductVariantValue);

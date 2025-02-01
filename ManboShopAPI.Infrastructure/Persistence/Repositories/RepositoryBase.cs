@@ -52,7 +52,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				: await _dbSet.AsNoTracking().Where(predicate).ToListAsync();
 		}
 
-		public async Task AddAsync(T entity)
+		public virtual async Task AddAsync(T entity)
 		{
 			await _dbSet.AddAsync(entity);
 		}
@@ -62,13 +62,13 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 			await _dbSet.AddRangeAsync(entities);
 		}
 
-		public void Update(T entity)
+		public virtual void Update(T entity)
 		{
 			_dbSet.Update(entity);
 
 		}
 
-		public void Remove(T entity)
+		public virtual void Remove(T entity)
 		{
 			_dbSet.Remove(entity);
 		}

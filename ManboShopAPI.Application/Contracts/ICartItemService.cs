@@ -1,6 +1,4 @@
-﻿using ManboShopAPI.Application.DTOs.CartItemDtos;
-
-namespace ManboShopAPI.Application.Contracts
+﻿namespace ManboShopAPI.Application.Contracts
 {
 	public interface ICartItemService
 	{

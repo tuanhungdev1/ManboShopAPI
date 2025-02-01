@@ -1,5 +1,4 @@
 ﻿using ManboShopAPI.Application.DTOs.CartItemDtos;
-using ManboShopAPI.Domain.Entities;
 
 namespace ManboShopAPI.Application.DTOs.CartDtos
 {

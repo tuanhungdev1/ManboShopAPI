@@ -30,6 +30,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         private readonly Lazy<IProductVariantValueRepository> _productVariantValueRepository;
         private readonly Lazy<IFavoriteRepository> _favoriteRepository;
         private readonly Lazy<IBannerDetailRepository> _bannerDetailRepository;
+        private readonly Lazy<IAddressRepository> _addressRepository;
 		public UnitOfWork(ApplicationDbContext context,
                           UserManager<User> userManager
         )
@@ -51,6 +52,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
             _productVariantValueRepository = new Lazy<IProductVariantValueRepository>(() => new ProductVariantValueRepository(_context));
             _favoriteRepository = new Lazy<IFavoriteRepository>(() => new FavoriteRepository(_context));
             _bannerDetailRepository = new Lazy<IBannerDetailRepository>(() => new BannerDetailRepository(_context));
+            _addressRepository = new Lazy<IAddressRepository>(() => new AddressRepository(_context));
         }
 
         public IBrandRepository BrandRepository => _brandRepository.Value;
@@ -70,6 +72,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         public IProductVariantValueRepository ProductVariantValueRepository => _productVariantValueRepository.Value;
         public IFavoriteRepository FavoriteRepository => _favoriteRepository.Value;
         public IBannerDetailRepository BannerDetailRepository => _bannerDetailRepository.Value;
+        public IAddressRepository AddressRepository => _addressRepository.Value;
         public async Task BeginTransactionAsync()
         {
             if (_transaction != null)

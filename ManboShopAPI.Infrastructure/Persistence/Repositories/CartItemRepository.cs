@@ -1,6 +1,5 @@
 ﻿using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 {

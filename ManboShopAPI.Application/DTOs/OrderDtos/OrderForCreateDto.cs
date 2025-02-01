@@ -6,12 +6,10 @@ namespace ManboShopAPI.Application.DTOs.OrderDtos
 {
 	public class OrderForCreateDto
 	{
-		public int? UserId { get; set; }
+		public int UserId { get; set; }
 
         [MaxLength(500, ErrorMessage = "Ghi chú không được vượt quá 500 ký tự.")]
 		public string? Note { get; set; }
-
-		[Required(ErrorMessage = "Trạng thái đơn hàng là bắt buộc.")]
 		public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
 		[Column(TypeName = "decimal(18,2)")]

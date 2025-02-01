@@ -13,23 +13,20 @@ namespace ManboShopAPI.Domain.Entities
         [MaxLength(20)]
 		public required string PhoneNumber { get; set; }
 		[Required]
-		[MaxLength(200)]
-		public required string FlatOrHouse { get; set; }
-		[Required]
-		[MaxLength(200)]
-		public required string BuildingOrCompanyOrApartment { get; set; }
-		[Required]
-		[MaxLength(200)]
-		public required string AreaOrColonyOrStreetOrSectorOrVillage { get; set; }
+		[MaxLength(1000)]
+		public required string AddressLine { get; set; }
 		[Required]
 		[MaxLength(200)]
 		public required string City { get; set; }
 		[Required]
-		[MaxLength(100)]
-		public required string PinCode { get; set; }
+		[MaxLength(200)]
+		public required string State { get; set; }
+		[Required]
+		[MaxLength(200)]
+		public required string Country { get; set; }
 		[Required]
 		[MaxLength(100)]
-		public required string State { get; set; }
-		public bool IsDefault { get; set; }
+		public required string PostalCode { get; set; }
+		public bool IsDefault { get; set; } = false;
 	}
 }

@@ -208,6 +208,17 @@ namespace ManboShopAPI.Application.Mappings
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 
 			//FEEDBACK
+
+
+			//ADDRESS
+			CreateMap<Address, AddressDto>().ReverseMap();
+			CreateMap<AddressForCreateDto, Address>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore())
+				.ReverseMap();
+			CreateMap<AddressForUpdateDto, Address>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore())
+				.ReverseMap();
+			//ADDRESS
 		}
 	}
 }

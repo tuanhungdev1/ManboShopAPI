@@ -2,6 +2,7 @@
 using ManboShopAPI.Application.DTOs.FeedbackDtos;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Filters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 
@@ -110,6 +111,7 @@ namespace ManboShopAPI.Controllers
 		}
 
 		[HttpPost]
+		[Authorize]
 		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -126,6 +128,7 @@ namespace ManboShopAPI.Controllers
 		}
 
 		[HttpPut("{id:int}")]
+		[Authorize]
 		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -143,6 +146,7 @@ namespace ManboShopAPI.Controllers
 		}
 
 		[HttpDelete("{id:int}")]
+		[Authorize]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		public async Task<IActionResult> DeleteFeedback(int id)

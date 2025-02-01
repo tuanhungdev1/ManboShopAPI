@@ -21,6 +21,7 @@ namespace ManboShopAPI.Application.UnitOfWork
         public IProductVariantValueRepository ProductVariantValueRepository { get; }
         public IFavoriteRepository FavoriteRepository { get; }
         public IBannerDetailRepository BannerDetailRepository { get; }
+		public IAddressRepository AddressRepository { get; }
         Task BeginTransactionAsync();
 		Task CommitAsync();
 		Task RollbackAsync();

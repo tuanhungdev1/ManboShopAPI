@@ -1,7 +1,4 @@
-﻿using ManboShopAPI.Application.Common.Response;
-using ManboShopAPI.Application.Contracts;
-using ManboShopAPI.Application.DTOs.CartItemDtos;
-using ManboShopAPI.Filters;
+﻿using ManboShopAPI.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 
