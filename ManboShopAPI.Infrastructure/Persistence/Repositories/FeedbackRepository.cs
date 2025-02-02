@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Application.Interfaces;
+﻿using ManboShopAPI.Application.Common.Request;
+using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,17 +24,23 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 			return await query.FirstOrDefaultAsync();
 		}
 
-		public async Task<IEnumerable<Feedback>> GetFeedbacksByProductIdAsync(int productId, bool asNoTracking = false)
+		public async Task<PagedList<Feedback>> GetFeedbacksByProductIdAsync(int productId, FeedbackRequestParameters feedbackRequestParameters)
 		{
-			IQueryable<Feedback> query = _dbSet
+			var query = _dbSet
+				.AsNoTracking()
 				.Include(f => f.User)
 				.Where(f => f.ProductId == productId)
 				.OrderByDescending(f => f.CreatedAt);
 
-			if (asNoTracking)
-				query = query.AsNoTracking();
+			var totalItems = await query.CountAsync();
 
-			return await query.ToListAsync();
+
+			var items = await query
+				.Skip(feedbackRequestParameters.PageSize * (feedbackRequestParameters.PageNumber - 1))
+				.Take(feedbackRequestParameters.PageSize)
+				.ToListAsync();
+			
+			return new PagedList<Feedback>(items, totalItems, feedbackRequestParameters.PageNumber, feedbackRequestParameters.PageSize);
 		}
 
 		public async Task<IEnumerable<Feedback>> GetFeedbacksByUserIdAsync(int userId, bool asNoTracking = false)
@@ -78,6 +85,20 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				query = query.AsNoTracking();
 
 			return await query.ToListAsync();
+		}
+
+		public async Task<bool> IsLikedByUserAsync(int feedbackId, int userId)
+		{
+			return await _context.FeedbackLikes
+				.AnyAsync(fl => fl.FeedbackId == feedbackId && fl.UserId == userId);
+		}
+		public async Task<int> GetFeedbackLikesCountAsync(int feedbackId)
+		{
+			return await _dbSet
+				.Include(f => f.FeedbackLikes)
+				.Where(f => f.Id == feedbackId)
+				.Select(f => f.FeedbackLikes.Count)
+				.FirstOrDefaultAsync();
 		}
 	}
 }

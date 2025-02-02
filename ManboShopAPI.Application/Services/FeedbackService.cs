@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.DTOs.FeedbackDtos;
 using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Application.UnitOfWork;
 using ManboShopAPI.Domain.Entities;
+using ManboShopAPI.Domain.Enums;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using Microsoft.EntityFrameworkCore;
@@ -54,7 +56,10 @@ namespace ManboShopAPI.Application.Services
 			return _mapper.Map<FeedbackDto>(feedback);
 		}
 
-		public async Task<IEnumerable<FeedbackDto>> GetFeedbacksByProductIdAsync(int productId)
+		public async Task<(IEnumerable<FeedbackDto> feedbackDtos, MetaData metaData)> GetFeedbacksByProductIdAsync(
+	int productId,
+	FeedbackRequestParameters feedbackRequestParameters,
+	int? currentUserId = null) // Thêm parameter này
 		{
 			if (!await _productRepository.ProductExistsAsync(productId))
 			{
@@ -62,9 +67,27 @@ namespace ManboShopAPI.Application.Services
 				throw new ProductNotFoundException(productId);
 			}
 
-			var feedbacks = await _feedbackRepository.GetFeedbacksByProductIdAsync(productId);
+			var feedbacks = await _feedbackRepository.GetFeedbacksByProductIdAsync(productId, feedbackRequestParameters);
 			_logger.LogInfo($"Lấy danh sách đánh giá cho sản phẩm id {productId} thành công");
-			return _mapper.Map<IEnumerable<FeedbackDto>>(feedbacks);
+
+			var feedbackDtos = _mapper.Map<IEnumerable<FeedbackDto>>(feedbacks);
+
+			foreach (var feedbackDto in feedbackDtos)
+			{
+				feedbackDto.TotalLikes = await _feedbackRepository.GetFeedbackLikesCountAsync(feedbackDto.Id);
+
+				// Kiểm tra trạng thái like nếu có currentUserId
+				if (currentUserId.HasValue)
+				{
+					feedbackDto.IsLiked = await _feedbackRepository.IsLikedByUserAsync(feedbackDto.Id, currentUserId.Value);
+				}
+				else
+				{
+					feedbackDto.IsLiked = false;
+				}
+			}
+
+			return (feedbackDtos, metaData: feedbacks.MetaData);
 		}
 
 		public async Task<IEnumerable<FeedbackDto>> GetFeedbacksByUserIdAsync(int userId)
@@ -106,7 +129,7 @@ namespace ManboShopAPI.Application.Services
 			return averageRating;
 		}
 
-		public async Task<FeedbackDto> CreateFeedbackAsync(FeedbackForCreateDto feedbackDto)
+		public async Task<FeedbackDto> CreateFeedbackAsync(int userId, FeedbackForCreateDto feedbackDto)
 		{
 			try
 			{
@@ -114,13 +137,14 @@ namespace ManboShopAPI.Application.Services
 
 				await ValidateFeedbackData(feedbackDto);
 
-				// Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
-				if (await _feedbackRepository.UserHasFeedbackForProductAsync(feedbackDto.UserId, feedbackDto.ProductId))
+				if (!await _userRepository.UserExistsAsync(userId))
 				{
-					throw new FeedbackBadRequestException("Người dùng đã đánh giá sản phẩm này");
+					throw new UserNotFoundException(userId);
 				}
 
 				var feedback = _mapper.Map<Feedback>(feedbackDto);
+
+				feedback.UserId = userId;
 				await _feedbackRepository.AddAsync(feedback);
 				await _feedbackRepository.SaveChangesAsync();
 
@@ -198,10 +222,7 @@ namespace ManboShopAPI.Application.Services
 
 		private async Task ValidateFeedbackData(FeedbackForCreateDto feedbackDto)
 		{
-			if (!await _userRepository.UserExistsAsync(feedbackDto.UserId))
-			{
-				throw new UserNotFoundException(feedbackDto.UserId);
-			}
+			
 
 			if (!await _productRepository.ProductExistsAsync(feedbackDto.ProductId))
 			{
@@ -217,6 +238,202 @@ namespace ManboShopAPI.Application.Services
 			{
 				throw new FeedbackBadRequestException("Nội dung đánh giá không được để trống");
 			}
+		}
+
+
+		public async Task<FeedbackLikeDto> LikeFeedbackAsync(int feedbackId, int userId)
+		{
+			try
+			{
+				await _unitOfWork.BeginTransactionAsync();
+
+				var feedback = await _unitOfWork.FeedbackRepository.GetByIdAsync(feedbackId);
+				if (feedback == null)
+					throw new FeedbackNotFoundException($"Không tìm thấy đánh giá {feedbackId}");
+
+				var existingLike = await _unitOfWork.FeedbackLikeRepository
+					.FindByCondition(l => l.FeedbackId == feedbackId && l.UserId == userId)
+					.FirstOrDefaultAsync();
+
+				if (existingLike != null)
+					throw new FeedbackBadRequestException("Bạn đã thích đánh giá này rồi");
+
+				var like = new FeedbackLike
+				{
+					FeedbackId = feedbackId,
+					UserId = userId
+				};
+
+				await _unitOfWork.FeedbackLikeRepository.AddAsync(like);
+				await _unitOfWork.SaveChangesAsync();
+				await _unitOfWork.CommitAsync();
+
+				return _mapper.Map<FeedbackLikeDto>(like);
+			}
+			catch (Exception)
+			{
+				await _unitOfWork.RollbackAsync();
+				throw;
+			}
+		}
+
+
+		public async Task UnlikeFeedbackAsync(int feedbackId, int userId)
+		{
+			try
+			{
+				await _unitOfWork.BeginTransactionAsync();
+
+				var like = await _unitOfWork.FeedbackLikeRepository
+					.FindByCondition(l => l.FeedbackId == feedbackId && l.UserId == userId)
+					.FirstOrDefaultAsync();
+
+				if (like == null)
+					throw new FeedbackNotFoundException("Không tìm thấy lượt thích");
+
+				_unitOfWork.FeedbackLikeRepository.Remove(like);
+				await _unitOfWork.SaveChangesAsync();
+				await _unitOfWork.CommitAsync();
+			}
+			catch (Exception)
+			{
+				await _unitOfWork.RollbackAsync();
+				throw;
+			}
+		}
+
+
+		public async Task<bool> HasUserLikedFeedbackAsync(int feedbackId, int userId)
+		{
+			return await _unitOfWork.FeedbackLikeRepository
+				.FindByCondition(l => l.FeedbackId == feedbackId && l.UserId == userId)
+				.AnyAsync();
+		}
+
+		public async Task<int> GetFeedbackLikesCountAsync(int feedbackId)
+		{
+			return await _unitOfWork.FeedbackLikeRepository
+				.FindByCondition(l => l.FeedbackId == feedbackId)
+				.CountAsync();
+		}
+
+		public async Task<IEnumerable<FeedbackLikeDto>> GetFeedbackLikesAsync(int feedbackId)
+		{
+			var likes = await _unitOfWork.FeedbackLikeRepository
+				.FindByCondition(l => l.FeedbackId == feedbackId)
+				.Include(l => l.User)
+				.OrderByDescending(l => l.CreatedAt)
+				.ToListAsync();
+
+			return _mapper.Map<IEnumerable<FeedbackLikeDto>>(likes);
+		}
+
+		// Report methods
+		public async Task<FeedbackReportDto> ReportFeedbackAsync(
+			int feedbackId,
+			int userId,
+			FeedbackReportForCreateDto reportDto)
+		{
+			try
+			{
+				await _unitOfWork.BeginTransactionAsync();
+
+				var feedback = await _unitOfWork.FeedbackRepository.GetByIdAsync(feedbackId);
+				if (feedback == null)
+					throw new FeedbackNotFoundException($"Không tìm thấy đánh giá {feedbackId}");
+
+				var existingReport = await _unitOfWork.FeedbackReportRepository
+					.FindByCondition(r => r.FeedbackId == feedbackId && r.UserId == userId)
+					.FirstOrDefaultAsync();
+
+				if (existingReport != null)
+					throw new FeedbackBadRequestException("Bạn đã báo cáo đánh giá này rồi");
+
+				var report = new FeedbackReport
+				{
+					FeedbackId = feedbackId,
+					UserId = userId,
+					Reason = reportDto.Reason,
+					Status = ReportStatus.Pending
+				};
+
+				await _unitOfWork.FeedbackReportRepository.AddAsync(report);
+				await _unitOfWork.SaveChangesAsync();
+				await _unitOfWork.CommitAsync();
+
+				return _mapper.Map<FeedbackReportDto>(report);
+			}
+			catch (Exception)
+			{
+				await _unitOfWork.RollbackAsync();
+				throw;
+			}
+		}
+
+		public async Task<bool> HasUserReportedFeedbackAsync(int feedbackId, int userId)
+		{
+			return await _unitOfWork.FeedbackReportRepository
+				.FindByCondition(r => r.FeedbackId == feedbackId && r.UserId == userId)
+				.AnyAsync();
+		}
+
+		public async Task<IEnumerable<FeedbackReportDto>> GetFeedbackReportsAsync(int feedbackId)
+		{
+			var reports = await _unitOfWork.FeedbackReportRepository
+				.FindByCondition(r => r.FeedbackId == feedbackId)
+				.Include(r => r.User)
+				.OrderByDescending(r => r.CreatedAt)
+				.ToListAsync();
+
+			return _mapper.Map<IEnumerable<FeedbackReportDto>>(reports);
+		}
+
+		public async Task<FeedbackReportDto> UpdateReportStatusAsync(int reportId, ReportStatus status)
+		{
+			try
+			{
+				await _unitOfWork.BeginTransactionAsync();
+
+				var report = await _unitOfWork.FeedbackReportRepository.GetByIdAsync(reportId);
+				if (report == null)
+					throw new FeedbackNotFoundException($"Không tìm thấy báo cáo {reportId}");
+
+				report.Status = status;
+				report.UpdatedAt = DateTime.UtcNow;
+
+				_unitOfWork.FeedbackReportRepository.Update(report);
+				await _unitOfWork.SaveChangesAsync();
+				await _unitOfWork.CommitAsync();
+
+				return _mapper.Map<FeedbackReportDto>(report);
+			}
+			catch (Exception)
+			{
+				await _unitOfWork.RollbackAsync();
+				throw;
+			}
+		}
+
+		public async Task DeleteReportAsync(int reportId)
+		{
+			var report = await _unitOfWork.FeedbackReportRepository.GetByIdAsync(reportId);
+			if (report == null)
+				throw new FeedbackNotFoundException($"Không tìm thấy báo cáo {reportId}");
+
+			_unitOfWork.FeedbackReportRepository.Remove(report);
+			await _unitOfWork.SaveChangesAsync();
+		}
+
+		public async Task<IEnumerable<FeedbackReportDto>> GetPendingReportsAsync()
+		{
+			var reports = await _unitOfWork.FeedbackReportRepository
+				.FindByCondition(r => r.Status == ReportStatus.Pending)
+				.Include(r => r.User)
+				.Include(r => r.Feedback)
+				.OrderByDescending(r => r.CreatedAt)
+				.ToListAsync();
+
+			return _mapper.Map<IEnumerable<FeedbackReportDto>>(reports);
 		}
 	}
 }

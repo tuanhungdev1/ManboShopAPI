@@ -31,6 +31,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         private readonly Lazy<IFavoriteRepository> _favoriteRepository;
         private readonly Lazy<IBannerDetailRepository> _bannerDetailRepository;
         private readonly Lazy<IAddressRepository> _addressRepository;
+        private readonly Lazy<IFeedbackRepository> _feedbackRepository;
+        private readonly Lazy<IFeedbackLikeRepository> _feedbackLikeRepository;
+        private readonly Lazy<IFeedbackReportRepository> _feedbackReportRepository;
 		public UnitOfWork(ApplicationDbContext context,
                           UserManager<User> userManager
         )
@@ -53,6 +56,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
             _favoriteRepository = new Lazy<IFavoriteRepository>(() => new FavoriteRepository(_context));
             _bannerDetailRepository = new Lazy<IBannerDetailRepository>(() => new BannerDetailRepository(_context));
             _addressRepository = new Lazy<IAddressRepository>(() => new AddressRepository(_context));
+            _feedbackRepository = new Lazy<IFeedbackRepository>(() => new FeedbackRepository(_context));
+            _feedbackLikeRepository = new Lazy<IFeedbackLikeRepository>(() => new FeedbackLikeRepository(_context));
+            _feedbackReportRepository = new Lazy<IFeedbackReportRepository>(() => new FeedbackReportRepository(_context));
         }
 
         public IBrandRepository BrandRepository => _brandRepository.Value;
@@ -73,6 +79,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         public IFavoriteRepository FavoriteRepository => _favoriteRepository.Value;
         public IBannerDetailRepository BannerDetailRepository => _bannerDetailRepository.Value;
         public IAddressRepository AddressRepository => _addressRepository.Value;
+        public IFeedbackRepository FeedbackRepository => _feedbackRepository.Value;
+        public IFeedbackLikeRepository FeedbackLikeRepository => _feedbackLikeRepository.Value;
+        public IFeedbackReportRepository FeedbackReportRepository => _feedbackReportRepository.Value;
         public async Task BeginTransactionAsync()
         {
             if (_transaction != null)

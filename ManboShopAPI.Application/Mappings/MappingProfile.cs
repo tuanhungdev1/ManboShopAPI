@@ -219,6 +219,12 @@ namespace ManboShopAPI.Application.Mappings
 				.ForMember(dest => dest.Id, opt => opt.Ignore())
 				.ReverseMap();
 			//ADDRESS
+
+
+			// FEEDBACK LIKE
+			CreateMap<FeedbackLike, FeedbackLikeDto>().ReverseMap();
+
+			// FEEDBACK LIKE
 		}
 	}
 }

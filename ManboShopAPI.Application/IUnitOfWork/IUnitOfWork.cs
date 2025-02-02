@@ -22,6 +22,9 @@ namespace ManboShopAPI.Application.UnitOfWork
         public IFavoriteRepository FavoriteRepository { get; }
         public IBannerDetailRepository BannerDetailRepository { get; }
 		public IAddressRepository AddressRepository { get; }
+		public IFeedbackRepository FeedbackRepository { get; }
+		public IFeedbackLikeRepository FeedbackLikeRepository { get; }
+		public IFeedbackReportRepository FeedbackReportRepository { get; }
         Task BeginTransactionAsync();
 		Task CommitAsync();
 		Task RollbackAsync();

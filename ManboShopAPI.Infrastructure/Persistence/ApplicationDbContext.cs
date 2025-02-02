@@ -43,6 +43,8 @@ namespace ManboShopAPI.Infrastructure.Persistence
 		public DbSet<Variant> Variants { get; set; }
 		public DbSet<VariantValue> VariantValues { get; set; }
 		public DbSet<ProductVariantValue> ProductVariantValues { get; set; }
+        public DbSet<FeedbackLike> FeedbackLikes { get; set; }
+        public DbSet<FeedbackReport> FeedbackReports { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -86,6 +88,10 @@ namespace ManboShopAPI.Infrastructure.Persistence
 			modelBuilder.ApplyConfiguration(new ProductVariantValueConfiguration());
 
 			modelBuilder.ApplyConfiguration(new VariantValueConfiguration());
+
+			modelBuilder.ApplyConfiguration(new FeedbackLikeConfiguration());
+
+			modelBuilder.ApplyConfiguration(new FeedbackReportConfiguration());
 
 		}
 	}
