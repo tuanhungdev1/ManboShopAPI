@@ -6,6 +6,7 @@ using ManboShopAPI.Application.UnitOfWork;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using ManboShopAPI.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManboShopAPI.Application.Services
 {
@@ -63,6 +64,25 @@ namespace ManboShopAPI.Application.Services
 				var address = _mapper.Map<Address>(addressDto);
 				address.UserId = userId;
 
+				var addressCount = await _unitOfWork.AddressRepository.GetUserAddressCountAsync(userId);
+
+				if (addressDto.IsDefault || addressCount == 0)
+				{
+					// Nếu có địa chỉ mặc định trước đó, cần đặt nó thành false
+					var defaultAddress = await _unitOfWork.AddressRepository
+											.FindByCondition(a => a.UserId == userId && a.IsDefault)
+											.AsTracking()
+											.SingleOrDefaultAsync();
+
+					if (defaultAddress != null)
+					{
+						defaultAddress.IsDefault = false;
+						_unitOfWork.AddressRepository.Update(defaultAddress);
+					}
+
+					address.IsDefault = true;
+				}
+
 				await _unitOfWork.AddressRepository.AddAsync(address);
 				await _unitOfWork.SaveChangesAsync();
 				await _unitOfWork.CommitAsync();
@@ -77,6 +97,7 @@ namespace ManboShopAPI.Application.Services
 			}
 		}
 
+
 		public async Task<AddressDto> UpdateAddressAsync(int addressId, int userId, AddressForUpdateDto addressDto)
 		{
 			try
@@ -89,6 +110,23 @@ namespace ManboShopAPI.Application.Services
 
 				if (address.UserId != userId)
 					throw new UnauthorizedAccessException("Bạn không có quyền cập nhật địa chỉ này");
+
+				if (addressDto.IsDefault && !address.IsDefault)
+				{
+					// Tìm địa chỉ mặc định cũ và đặt lại thành false
+					var defaultAddress = await _unitOfWork.AddressRepository
+											.FindByCondition(a => a.UserId == userId && a.IsDefault)
+											.AsTracking()
+											.SingleOrDefaultAsync();
+
+					if (defaultAddress != null)
+					{
+						defaultAddress.IsDefault = false;
+						_unitOfWork.AddressRepository.Update(defaultAddress);
+					}
+
+					address.IsDefault = true;
+				}
 
 				_mapper.Map(addressDto, address);
 
@@ -106,6 +144,7 @@ namespace ManboShopAPI.Application.Services
 			}
 		}
 
+
 		public async Task DeleteAddressAsync(int addressId, int userId)
 		{
 			try
@@ -118,6 +157,12 @@ namespace ManboShopAPI.Application.Services
 
 				if (address.UserId != userId)
 					throw new UnauthorizedAccessException("Bạn không có quyền xóa địa chỉ này");
+
+				// Kiểm tra nếu địa chỉ là mặc định, không cho phép xóa
+				if (address.IsDefault)
+				{
+					throw new AddressBadRequestException("Không thể xóa địa chỉ mặc định");
+				}
 
 				var addressCount = await _unitOfWork.AddressRepository.GetUserAddressCountAsync(userId);
 				if (addressCount == 1)
@@ -135,6 +180,7 @@ namespace ManboShopAPI.Application.Services
 				throw;
 			}
 		}
+
 
 		public async Task<AddressDto> SetDefaultAddressAsync(int addressId, int userId)
 		{

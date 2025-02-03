@@ -39,6 +39,9 @@ namespace ManboShopAPI
 				options.MultipartBodyLengthLimit = int.MaxValue;
 			});
 
+			builder.Services.Configure<GoogleAuthSettings>(
+			builder.Configuration.GetSection("GoogleAuthSettings"));
+
 			// Cấu hình Authentication và JwtBearer riêng
 			builder.Services.AddAuthentication(options =>
 			{

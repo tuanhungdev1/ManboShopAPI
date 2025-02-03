@@ -58,10 +58,17 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 		public async Task<double> GetAverageStarRatingForProductAsync(int productId)
 		{
-			return await _dbSet
-				.Where(f => f.ProductId == productId)
-				.AverageAsync(f => (double)f.Star);
+			var feedbacks = await _dbSet.Where(f => f.ProductId == productId).ToListAsync();
+
+			// Nếu không có feedback nào, trả về 0
+			if (feedbacks.Count == 0)
+			{
+				return 0;
+			}
+
+			return feedbacks.Average(f => (double)f.Star);
 		}
+
 
 		public async Task<bool> FeedbackExistsAsync(int id)
 		{

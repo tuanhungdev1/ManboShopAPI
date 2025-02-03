@@ -32,7 +32,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 			return asNoTracking
 				? await query.AsNoTracking().FirstOrDefaultAsync()
-				: await query.FirstOrDefaultAsync();
+				: await query.AsTracking().FirstOrDefaultAsync();
 		}
 
 		public async Task<bool> HasDefaultAddressAsync(int userId)
@@ -101,50 +101,5 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				.CountAsync();
 		}
 
-		public override async Task AddAsync(Address address)
-		{
-			// If this is the first address for the user, make it default
-			if (!await HasDefaultAddressAsync(address.UserId))
-			{
-				address.IsDefault = true;
-			}
-			await base.AddAsync(address);
-		}
-
-		public override void Update(Address address)
-		{
-			// Ensure we don't accidentally remove the default status if this is the only address
-			if (!address.IsDefault)
-			{
-				var addressCount = _context.Addresses
-					.Where(a => a.UserId == address.UserId)
-					.Count();
-
-				if (addressCount == 1)
-				{
-					address.IsDefault = true;
-				}
-			}
-			base.Update(address);
-		}
-
-		public override void Remove(Address address)
-		{
-			// If removing default address, set another address as default if exists
-			if (address.IsDefault)
-			{
-				var nextDefaultAddress = _context.Addresses
-					.Where(a => a.UserId == address.UserId && a.Id != address.Id)
-					.OrderByDescending(a => a.CreatedAt)
-					.FirstOrDefault();
-
-				if (nextDefaultAddress != null)
-				{
-					nextDefaultAddress.IsDefault = true;
-					_context.Addresses.Update(nextDefaultAddress);
-				}
-			}
-			base.Remove(address);
-		}
 	}
 }
