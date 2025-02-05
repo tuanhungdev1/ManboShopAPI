@@ -82,6 +82,53 @@ public class AuthController : ControllerBase
 		});
 	}
 
+	[HttpPost("facebook-login")]
+	[ValidationFilter]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> FacebookLogin([FromBody] LoginFacebookDto loginFacebookDto)
+	{
+		var (userDto, tokenDto) = await _authService.LoginWithFacebookAsync(loginFacebookDto.Credential);
+		var token = new Token
+		{
+			AccessToken = tokenDto.AccessToken,
+			RefreshToken = tokenDto.RefreshToken
+		};
+		return Ok(new ApiResponse<object>
+		{
+			StatusCode = 200,
+			Success = true,
+			Message = "Đăng nhập thành công.",
+			Data = new { User = userDto},
+			Token = token
+		});
+	}
+
+	[HttpPost("google-login")]
+	[ValidationFilter]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<IActionResult> GoogleLogin([FromBody] LoginGoogleDto loginGoogleDto)
+	{
+		var (userDto, tokenDto) = await _authService.LoginWithGoogleAsync(loginGoogleDto.Credential);
+		var token = new Token
+		{
+			AccessToken = tokenDto.AccessToken,
+			RefreshToken = tokenDto.RefreshToken
+		};
+		return Ok(new ApiResponse<object>
+		{
+			StatusCode = 200,
+			Success = true,
+			Message = "Đăng nhập thành công.",
+			Data = new { User = userDto},
+			Token = token
+		});
+	}
+
+
 	[HttpPut("change-password")]
 	[ValidationFilter]
 	[ProducesResponseType(StatusCodes.Status200OK)]

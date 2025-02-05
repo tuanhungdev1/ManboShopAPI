@@ -7,6 +7,7 @@ namespace ManboShopAPI.Application.Interfaces
 	public interface ICartRepository : IRepositoryBase<Cart>
 	{
 		Task<PagedList<Cart>> FetchAllCartAsync(CartRequestParameters cartRequestParameters);
+		Task<int> GetTotalCartProductsForUser(int userId);
 		Task<Cart?> GetCartBySessionIdAsync(string sessionId, bool includeItems = false);
 		Task<Cart?> GetCartByUserIdAsync(int userId, bool includeItems = false);
 		Task<bool> IsCartExistsAsync(string sessionId);

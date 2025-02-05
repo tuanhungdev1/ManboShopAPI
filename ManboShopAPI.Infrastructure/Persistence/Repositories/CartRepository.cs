@@ -11,7 +11,28 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 		}
 
-		public async Task<PagedList<Cart>> FetchAllCartAsync(CartRequestParameters cartRequestParameters)
+		public async Task<int> GetTotalCartProductsForUser(int userId)
+		{
+			var cart = await _dbSet
+				.Include(c => c.CartItems)
+				.FirstOrDefaultAsync(c => c.UserId == userId);
+
+			if (cart == null)
+			{
+				var newCart = new Cart
+				{
+					UserId = userId
+				};
+
+				await _dbSet.AddAsync(newCart);
+				await _context.SaveChangesAsync();
+				return 0;
+			}
+			return cart.CartItems.Count;
+
+		}
+
+			public async Task<PagedList<Cart>> FetchAllCartAsync(CartRequestParameters cartRequestParameters)
 		{
 			var query = _dbSet
 						.Include(c => c.CartItems)

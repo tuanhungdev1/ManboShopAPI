@@ -10,11 +10,16 @@ using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.SqlServer.Server;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using Google.Apis.Auth;
 using System.Text;
+using Newtonsoft.Json;
+
 
 public class AuthService : IAuthService
 {
@@ -24,6 +29,8 @@ public class AuthService : IAuthService
 	private readonly UserManager<User> _userManager;
 	private readonly SignInManager<User> _signInManager;
 	private readonly IConfiguration _configuration;
+	private readonly GoogleAuthSettings _googleSettings;
+	private readonly FacebookAuthSettings _facebookSettings;
 	private User _user;
 
 	public AuthService(
@@ -32,7 +39,9 @@ public class AuthService : IAuthService
 		ILoggerService logger,
 		UserManager<User> userManager,
 		SignInManager<User> signInManager,
-		IConfiguration configuration)
+		IConfiguration configuration,
+		IOptions<FacebookAuthSettings> facebookSettings,
+		IOptions<GoogleAuthSettings> googleSettings)
 	{
 		_unitOfWork = unitOfWork;
 		_mapper = mapper;
@@ -40,6 +49,162 @@ public class AuthService : IAuthService
 		_userManager = userManager;
 		_signInManager = signInManager;
 		_configuration = configuration;
+		_googleSettings = googleSettings.Value;
+		_facebookSettings = facebookSettings.Value;
+	}
+
+	public async Task<(UserDto userDto, TokenDto tokenDto)> LoginWithFacebookAsync(string credential)
+	{
+		try
+		{
+			// Parse credential từ frontend
+			var facebookCredential = JsonConvert.DeserializeObject<FacebookCredential>(credential);
+			if (facebookCredential == null || string.IsNullOrEmpty(facebookCredential.AccessToken))
+			{
+				throw new UserBadRequestException("Thông tin đăng nhập không hợp lệ");
+			}
+
+			// Verify token with Facebook
+			var client = new HttpClient();
+			var verifyTokenEndpoint = $"https://graph.facebook.com/{_facebookSettings.GraphApiVersion}/debug_token";
+			var response = await client.GetAsync(
+				$"{verifyTokenEndpoint}?input_token={facebookCredential.AccessToken}&access_token={_facebookSettings.AppId}|{_facebookSettings.AppSecret}");
+
+			if (!response.IsSuccessStatusCode)
+			{
+				throw new UserBadRequestException("Token Facebook không hợp lệ");
+			}
+
+			// Get user info from Facebook
+			var userInfoEndpoint = $"https://graph.facebook.com/{_facebookSettings.GraphApiVersion}/me";
+			var userInfoResponse = await client.GetAsync(
+				$"{userInfoEndpoint}?fields=id,email,first_name,last_name,picture&access_token={facebookCredential.AccessToken}");
+
+			if (!userInfoResponse.IsSuccessStatusCode)
+			{
+				throw new UserBadRequestException("Không thể lấy thông tin người dùng từ Facebook");
+			}
+
+			var userInfo = JsonConvert.DeserializeObject<FacebookUserInfo>(
+				await userInfoResponse.Content.ReadAsStringAsync());
+
+			if (userInfo == null || string.IsNullOrEmpty(userInfo.Email))
+			{
+				throw new UserBadRequestException("Không thể lấy email từ tài khoản Facebook");
+			}
+
+			// Check if user exists
+			var user = await _userManager.FindByEmailAsync(userInfo.Email);
+
+			if (user == null)
+			{
+				user = new User
+				{
+					Email = userInfo.Email,
+					UserName = userInfo.Email,
+					ProfilePictureUrl = userInfo.Picture?.Data?.Url,
+					EmailConfirmed = true,
+					FirstName = userInfo.FirstName,
+					LastName = userInfo.LastName,
+					PasswordHash = new Guid().ToString(),
+					CreatedAt = DateTime.UtcNow,
+					UpdatedAt = DateTime.UtcNow,
+				};
+
+				var result = await _userManager.CreateAsync(user);
+				if (!result.Succeeded)
+				{
+					_logger.LogError($"Không thể tạo tài khoản cho Facebook user: {user.Email}");
+					throw new UserBadRequestException("Không thể tạo tài khoản với Facebook.");
+				}
+
+				await _userManager.AddToRoleAsync(user, "Customer");
+			}
+			else
+			{
+				// Cập nhật thông tin user nếu cần
+				user.ProfilePictureUrl = userInfo.Picture?.Data?.Url;
+				user.FirstName = userInfo.FirstName;
+				user.LastName = userInfo.LastName;
+				user.UpdatedAt = DateTime.UtcNow;
+
+				await _userManager.UpdateAsync(user);
+			}
+
+			var userDto = _mapper.Map<UserDto>(user);
+			userDto.Roles = await _userManager.GetRolesAsync(user);
+
+			var tokenDto = await GenerateAndAssignTokensAsync(user);
+
+			_logger.LogInfo($"Đăng nhập Facebook thành công cho user: {user.Email}");
+
+			return (userDto, tokenDto);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError($"Lỗi đăng nhập Facebook: {ex.Message}");
+			throw;
+		}
+	}
+
+	public async Task<(UserDto userDto, TokenDto tokenDto)> LoginWithGoogleAsync(string credential)
+	{
+		try
+		{
+
+			var googleUser = JsonConvert.DeserializeObject<GoogleUserInfo>(credential);
+			// Kiểm tra xem user đã tồn tại chưa
+			var user = await _userManager.FindByEmailAsync(googleUser.Email);
+
+			if (user == null)
+			{
+				// Tạo user mới nếu chưa tồn tại
+				user = new User
+				{
+					Email = googleUser.Email,
+					UserName = googleUser.Email,
+					ProfilePictureUrl = googleUser.Picture,
+					EmailConfirmed = googleUser.EmailVerified,
+					FirstName = googleUser.Given_Name,
+					LastName = googleUser.Family_Name,
+					PasswordHash = new Guid().ToString(),
+					CreatedAt = DateTime.UtcNow,
+					UpdatedAt = DateTime.UtcNow
+				};
+
+				var result = await _userManager.CreateAsync(user);
+				if (!result.Succeeded)
+				{
+					_logger.LogError($"Không thể tạo tài khoản cho Google user: {user.Email}");
+					throw new UserBadRequestException("Không thể tạo tài khoản với Google.");
+				}
+
+				// Gán role mặc định
+				await _userManager.AddToRoleAsync(user, "Customer");
+			}
+
+			
+			// Map user thành UserDto
+			var userDto = _mapper.Map<UserDto>(user);
+			userDto.Roles = await _userManager.GetRolesAsync(user);
+
+			// Tạo token
+			var tokenDto = await GenerateAndAssignTokensAsync(user);
+
+			_logger.LogInfo($"Đăng nhập Google thành công cho user: {user.Email}");
+
+			return (userDto, tokenDto);
+		}
+		catch (InvalidJwtException)
+		{
+			_logger.LogError("Token Google không hợp lệ");
+			throw new UserBadRequestException("Token Google không hợp lệ");
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError($"Lỗi đăng nhập Google: {ex.Message}");
+			throw;
+		}
 	}
 
 	public async Task<bool> CheckUsernameAvailabilityAsync(string username)

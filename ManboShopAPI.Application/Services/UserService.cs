@@ -15,6 +15,7 @@ namespace ManboShopAPI.Application.Services
 	public class UserService : IUserService
 	{
 		private readonly IUserRepository _userRepository;
+		private readonly ICartRepository _cartRepository;
 		private readonly UserManager<User> _userManager;
 		private readonly IMapper _mapper;
 		private readonly RoleManager<IdentityRole<int>> _roleManager;
@@ -22,6 +23,7 @@ namespace ManboShopAPI.Application.Services
 
 		public UserService(
 			IUserRepository userRepository,
+			ICartRepository cartRepository,
 			UserManager<User> userManager,
 			RoleManager<IdentityRole<int>> roleManager,
 			IMapper mapper,
@@ -32,6 +34,7 @@ namespace ManboShopAPI.Application.Services
 			_mapper = mapper;
 			_logger = logger;
 			_roleManager = roleManager;
+			_cartRepository = cartRepository;	
 		}
 
 		public async Task<(IEnumerable<UserDto> userDtos, MetaData metaData)> GetUsersAsync(UserRequestParameters userRequestParameters)
@@ -60,16 +63,23 @@ namespace ManboShopAPI.Application.Services
 			}
 
 			
-			var userCurrent = await _userRepository.GetByIdAsync(parsedUserId);
+			var userCurrent = await _userRepository
+							.FindByCondition(u => u.Id == parsedUserId)
+							.Include(u => u.Favorites)
+							.FirstOrDefaultAsync();
 			if (userCurrent == null)
 			{
 				_logger.LogError($"Không tìm thấy người dùng với ID {parsedUserId}");
 				throw new UserNotFoundException(parsedUserId);
 			}
+			var totallCartProducts = await _cartRepository.GetTotalCartProductsForUser(parsedUserId);
 
 			var userDto = _mapper.Map<UserDto>(userCurrent);
 			var roles = await _userManager.GetRolesAsync(userCurrent);
 			userDto.Roles = roles;
+			userDto.TotalFavoriteProducts = userCurrent.Favorites.Count;
+			userDto.TotalCartProducts = totallCartProducts;
+
 			_logger.LogInfo("Lấy thông tin người dùng hiện tại thành công.");
 			return userDto;
 		}

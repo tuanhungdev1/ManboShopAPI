@@ -42,6 +42,9 @@ namespace ManboShopAPI
 			builder.Services.Configure<GoogleAuthSettings>(
 			builder.Configuration.GetSection("GoogleAuthSettings"));
 
+			builder.Services.Configure<FacebookAuthSettings>(
+			builder.Configuration.GetSection("FacebookAuthSettings"));
+
 			// Cấu hình Authentication và JwtBearer riêng
 			builder.Services.AddAuthentication(options =>
 			{
