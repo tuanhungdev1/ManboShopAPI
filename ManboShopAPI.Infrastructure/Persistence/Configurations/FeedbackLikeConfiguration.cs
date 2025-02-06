@@ -19,7 +19,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 				.WithMany(u => u.FeedbackLikes)
 				.HasForeignKey(a => a.FeedbackId)
 				.IsRequired(true)
-				.OnDelete(DeleteBehavior.NoAction);
+				.OnDelete(DeleteBehavior.Cascade);
 		}
 	}
 }

@@ -16,12 +16,14 @@ namespace ManboShopAPI.Application.Services
 		private readonly IFeedbackRepository _feedbackRepository;
 		private readonly IProductRepository _productRepository;
 		private readonly IUserRepository _userRepository;
+		private readonly IFeedbackLikeRepository _feedbackLikeRepository;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IMapper _mapper;
 		private readonly ILoggerService _logger;
 
 		public FeedbackService(
 			IFeedbackRepository feedbackRepository,
+			IFeedbackLikeRepository feedbackLikeRepository,
 			IProductRepository productRepository,
 			IUserRepository userRepository,
 			IUnitOfWork unitOfWork,
@@ -29,6 +31,7 @@ namespace ManboShopAPI.Application.Services
 			ILoggerService logger)
 		{
 			_feedbackRepository = feedbackRepository;
+			_feedbackLikeRepository = feedbackLikeRepository;
 			_productRepository = productRepository;
 			_userRepository = userRepository;
 			_unitOfWork = unitOfWork;
@@ -200,10 +203,15 @@ namespace ManboShopAPI.Application.Services
 			{
 				await _unitOfWork.BeginTransactionAsync();
 
-				var feedback = await _feedbackRepository.GetByIdAsync(id);
+				var feedback = await _feedbackRepository.FindByCondition(f => f.Id == id).AsTracking().Include(f => f.FeedbackLikes).FirstOrDefaultAsync();
 				if (feedback == null)
 				{
 					throw new FeedbackNotFoundException(id);
+				}
+
+				foreach (var like in feedback.FeedbackLikes)
+				{
+					_feedbackLikeRepository.Remove(like);
 				}
 
 				_feedbackRepository.Remove(feedback);

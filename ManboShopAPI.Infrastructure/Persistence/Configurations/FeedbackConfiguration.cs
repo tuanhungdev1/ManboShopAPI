@@ -21,7 +21,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 				.WithMany(p => p.Feedbacks)
 				.HasForeignKey(a => a.ProductId)
 				.IsRequired(true)
-				.OnDelete(DeleteBehavior.Cascade);
+				.OnDelete(DeleteBehavior.NoAction);
 		}
 	}
 }

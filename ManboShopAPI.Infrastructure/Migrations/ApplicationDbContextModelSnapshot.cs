@@ -81,7 +81,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.Attributes", b =>
@@ -105,7 +105,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Attributes");
+                    b.ToTable("Attributes", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.Banner", b =>
@@ -136,7 +136,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Banners");
+                    b.ToTable("Banners", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.BannerDetail", b =>
@@ -165,7 +165,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("BannerDetails");
+                    b.ToTable("BannerDetails", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.Brand", b =>
@@ -192,7 +192,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Brands");
+                    b.ToTable("Brands", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.Cart", b =>
@@ -219,7 +219,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Carts");
+                    b.ToTable("Carts", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.CartItem", b =>
@@ -251,7 +251,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("ProductVariantValueId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.Category", b =>
@@ -280,7 +280,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.Coupon", b =>
@@ -316,7 +316,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Coupons");
+                    b.ToTable("Coupons", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.CouponCondition", b =>
@@ -355,7 +355,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("CouponId");
 
-                    b.ToTable("CouponConditions");
+                    b.ToTable("CouponConditions", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.Favorite", b =>
@@ -384,7 +384,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Favorites");
+                    b.ToTable("Favorites", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.Feedback", b =>
@@ -426,7 +426,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Feedbacks");
+                    b.ToTable("Feedbacks", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.FeedbackLike", b =>
@@ -455,7 +455,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("FeedbackLikes");
+                    b.ToTable("FeedbackLikes", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.FeedbackReport", b =>
@@ -492,7 +492,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("FeedbackReports");
+                    b.ToTable("FeedbackReports", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.News", b =>
@@ -524,7 +524,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("News");
+                    b.ToTable("News", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.NewsDetail", b =>
@@ -553,7 +553,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("NewsDetails");
+                    b.ToTable("NewsDetails", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.Order", b =>
@@ -591,7 +591,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.OrderDetail", b =>
@@ -631,7 +631,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("ProductVariantValueId");
 
-                    b.ToTable("OrderDetails");
+                    b.ToTable("OrderDetails", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.Product", b =>
@@ -690,7 +690,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.ProductAttributeValue", b =>
@@ -723,7 +723,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductAttributeValues");
+                    b.ToTable("ProductAttributeValues", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.ProductImage", b =>
@@ -751,7 +751,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages");
+                    b.ToTable("ProductImages", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.ProductVariantValue", b =>
@@ -789,7 +789,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductVariantValues");
+                    b.ToTable("ProductVariantValues", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.User", b =>
@@ -1756,7 +1756,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Variants");
+                    b.ToTable("Variants", (string)null);
                 });
 
             modelBuilder.Entity("ManboShopAPI.Domain.Entities.VariantValue", b =>
@@ -1787,7 +1787,7 @@ namespace ManboShopAPI.Infrastructure.Migrations
 
                     b.HasIndex("VariantId");
 
-                    b.ToTable("VariantValues");
+                    b.ToTable("VariantValues", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
