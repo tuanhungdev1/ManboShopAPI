@@ -23,14 +23,15 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 		public async Task<PagedList<Product>> GetProductsWithDetailsAsync(ProductRequestParameters productRequestParameters)
 		{
-
 			var query = _dbSet
 				.Include(p => p.Category)
 				.Include(p => p.Brand)
 				.Include(p => p.ProductImages)
+				.Include(p => p.ProductVariantValues)
 				.AsNoTracking()
 				.AsQueryable();
 
+			// Search
 			if (!string.IsNullOrWhiteSpace(productRequestParameters.SearchTerm))
 			{
 				string searchTerm = productRequestParameters.SearchTerm.Trim().ToLower();
@@ -41,47 +42,82 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				);
 			}
 
-			if (productRequestParameters.CategoryId.HasValue)
+			// Categories filter
+			if (productRequestParameters.Categories?.Any() == true)
 			{
-				query = query.Where(p => p.CategoryId == productRequestParameters.CategoryId);
+				query = query.Where(p => p.Category != null &&
+					productRequestParameters.Categories.Contains(p.Category.Name));
 			}
 
-			if (productRequestParameters.BrandId.HasValue)
+			// Brands filter
+			if (productRequestParameters.Brands?.Any() == true)
 			{
-				query = query.Where(p => p.BrandId == productRequestParameters.BrandId);
+				query = query.Where(p => p.Brand != null &&
+					productRequestParameters.Brands.Contains(p.Brand.Name));
 			}
 
-			if (productRequestParameters.MinPrice.HasValue)
+			// Price range filter
+			if (productRequestParameters.PriceRange != null)
 			{
-				query = query.Where(p => p.Price >= productRequestParameters.MinPrice);
+				var priceList = productRequestParameters.PriceRange.Split('-');
+				query = query.Where(p =>
+					p.Price >= int.Parse(priceList[0]) &&
+					p.Price <= int.Parse(priceList[1]));
 			}
 
-			if (productRequestParameters.MaxPrice.HasValue)
+			if (productRequestParameters.Sizes?.Any() == true)
 			{
-				query = query.Where(p => p.Price <= productRequestParameters.MaxPrice);
+				var sizeVariantValues = await _context.VariantValues
+					.Where(vv => vv.Variant.Name == "Size" &&
+						   productRequestParameters.Sizes.Contains(vv.Value))
+					.Select(vv => vv.Id)
+					.ToListAsync();
+
+				query = query.AsEnumerable() // Chuyển đổi sang LINQ-to-Objects
+					.Where(p => p.ProductVariantValues.Any(pv =>
+					{
+						var skuParts = pv.Sku.Split('-');
+						if (skuParts.Length > 0 && int.TryParse(skuParts[0], out int sizeId))
+						{
+							return sizeVariantValues.Contains(sizeId);
+						}
+						return false;
+					}))
+					.AsQueryable();
 			}
 
-			
+			// Colors filter  
+			if (productRequestParameters.Colors?.Any() == true)
+			{
+				var colorVariantValues = await _context.VariantValues
+					.Where(vv => vv.Variant.Name == "Color" &&
+						   productRequestParameters.Colors.Contains(vv.Value))
+					.Select(vv => vv.Id)
+					.ToListAsync();
+
+				query = query.AsEnumerable() // Chuyển đổi sang LINQ-to-Objects
+					.Where(p => p.ProductVariantValues.Any(pv =>
+					{
+						var skuParts = pv.Sku.Split('-');
+						if (skuParts.Length > 1 && int.TryParse(skuParts[1], out int colorId))
+						{
+							return colorVariantValues.Contains(colorId);
+						}
+						return false;
+					}))
+					.AsQueryable();
+			}
+
+			// Sorting
 			if (!string.IsNullOrWhiteSpace(productRequestParameters.OrderBy))
 			{
 				var orderBy = productRequestParameters.OrderBy.Trim().ToLower();
-
 				query = orderBy switch
 				{
-					"asc" => query.OrderBy(p => p.Name),
-					"desc" => query.OrderByDescending(p => p.Name),
-					_ => query
-				};
-			}
-
-			if(!string.IsNullOrWhiteSpace(productRequestParameters.OrderPrice))
-			{
-				var orderPrice = productRequestParameters.OrderPrice.Trim().ToLower();
-
-				query = orderPrice switch
-				{
-					"asc" => query.OrderBy(p => p.Price),
-					"desc" => query.OrderByDescending(p => p.Price),
+					"price-asc" => query.OrderBy(p => p.Price),
+					"price-desc" => query.OrderByDescending(p => p.Price),
+					"bestseller" => query.OrderByDescending(p => p.BuyTurn),
+					"newest" => query.OrderByDescending(p => p.CreatedAt),
 					_ => query
 				};
 			}
@@ -94,9 +130,12 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				.Include(p => p.ProductImages)
 				.Include(p => p.Category)
 				.Include(p => p.Brand)
+				.Include(p => p.ProductVariantValues)
 				.ToListAsync();
 
-			return new PagedList<Product>(products, totalCount, productRequestParameters.PageNumber, productRequestParameters.PageSize);
+			return new PagedList<Product>(products, totalCount,
+				productRequestParameters.PageNumber,
+				productRequestParameters.PageSize);
 		}
 
 		public async Task<IEnumerable<Product>> GetProductsByCategoryIdAsync(int categoryId)

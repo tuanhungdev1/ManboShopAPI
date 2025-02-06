@@ -2,10 +2,16 @@
 {
 	public class ProductRequestParameters : RequestParameters
 	{
-        public int? BrandId { get; set; }
-        public int? CategoryId { get; set; }
-        public int? MinPrice { get; set; }
-        public int? MaxPrice { get; set; }
-        public string? OrderPrice { get; set; }
+        public ICollection<string>? Brands { get; set; } = new List<string>();
+        public ICollection<string>? Categories { get; set; } = new List<string>();
+        public string? PriceRange { get; set; }  
+        public ICollection<string>? Colors { get; set; } = new List<string>();
+        public ICollection<string>? Sizes { get; set; } = new List<string>();
+    }
+
+    public class PriceRange
+    {
+        public int Min { get; set; } = 0;
+        public int Max { get; set; } = 100000000;
     }
 }
