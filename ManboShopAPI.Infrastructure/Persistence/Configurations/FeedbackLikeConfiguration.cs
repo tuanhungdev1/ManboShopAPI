@@ -13,13 +13,13 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 				.WithMany(u => u.FeedbackLikes)
 				.HasForeignKey(a => a.UserId)
 				.IsRequired(true)
-				.OnDelete(DeleteBehavior.Cascade);
+				.OnDelete(DeleteBehavior.NoAction);
 
 			builder.HasOne(a => a.Feedback)
 				.WithMany(u => u.FeedbackLikes)
 				.HasForeignKey(a => a.FeedbackId)
-				.IsRequired(true)
-				.OnDelete(DeleteBehavior.Cascade);
+				.IsRequired(false)
+				.OnDelete(DeleteBehavior.SetNull);
 		}
 	}
 }

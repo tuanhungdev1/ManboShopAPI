@@ -8,6 +8,6 @@ namespace ManboShopAPI.Application.DTOs.VariantDtos
 		[Required(ErrorMessage = "Tên Gía Trị biến thể là bắt buộc.")]
 		[MaxLength(100, ErrorMessage = "Tên Gía Trị biến thể không được vượt quá 100 ký tự.")]
 		public required string  Value { get; set; }
-        public IFormFile? FileImage { get; set; }
+        public ICollection<IFormFile> FileImages { get; set; } = new List<IFormFile>();
     }
 }

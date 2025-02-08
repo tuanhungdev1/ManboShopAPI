@@ -35,6 +35,7 @@ namespace ManboShopAPI.Application.Mappings.MapperResolver
 				Values = _mapper.Map<ICollection<VariantValueDto>>(
 					v.VariantValues.Where(item => variantValueIds.Contains(item.Id))
 				),
+				
 				CreatedAt = v.CreatedAt,
 				UpdatedAt = v.UpdatedAt
 			}).ToList();

@@ -81,6 +81,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 			return _context.Variants
 				.Include(v => v.VariantValues)
+				.ThenInclude(vv => vv.VariantValueImages)
 				.Where(v => v.VariantValues.Any(vv => variantValueIds.Contains(vv.Id)))
 				.ToList();
 		}

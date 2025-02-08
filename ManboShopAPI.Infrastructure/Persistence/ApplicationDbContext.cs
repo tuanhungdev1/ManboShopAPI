@@ -1,4 +1,5 @@
-﻿using ManboShopAPI.Domain.Entities;
+﻿using ManboShopAPI.Application.Services;
+using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Infrastructure.Persistence.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -45,6 +46,7 @@ namespace ManboShopAPI.Infrastructure.Persistence
 		public DbSet<ProductVariantValue> ProductVariantValues { get; set; }
         public DbSet<FeedbackLike> FeedbackLikes { get; set; }
         public DbSet<FeedbackReport> FeedbackReports { get; set; }
+        public DbSet<VariantValueImage> VariantValueImages { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -92,6 +94,8 @@ namespace ManboShopAPI.Infrastructure.Persistence
 			modelBuilder.ApplyConfiguration(new FeedbackLikeConfiguration());
 
 			modelBuilder.ApplyConfiguration(new FeedbackReportConfiguration());
+
+			modelBuilder.ApplyConfiguration(new VariantValueImageConfiguration());
 
 		}
 	}

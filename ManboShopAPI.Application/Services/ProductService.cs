@@ -24,6 +24,7 @@ namespace ManboShopAPI.Application.Services
 		private readonly IBrandRepository _brandRepository;
 		private readonly ICloudinaryService _cloudinaryService;
 		private readonly IProductImageRepository _productImageRepository;
+		private readonly IVariantValueImageRepository _variantValueImageRepository;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IMapper _mapper;
 		private readonly ILoggerService _logger;
@@ -33,6 +34,7 @@ namespace ManboShopAPI.Application.Services
 
 		public ProductService(
 			IProductVariantValueRepository productVariantValueRepository,
+			IVariantValueImageRepository variantValueImageRepository,
 			IVariantValueRepository variantValueRepository,
 			IVariantRepository variantRepository,
 			IProductRepository productRepository,
@@ -52,6 +54,7 @@ namespace ManboShopAPI.Application.Services
 			_unitOfWork = unitOfWork;
 			_cloudinaryService = cloudinaryService;
 			_productImageRepository = productImageRepository;
+			_variantValueImageRepository = variantValueImageRepository;
 			_mapper = mapper;
 			_logger = logger;
 			_variantRepository = variantRepository;
@@ -144,6 +147,7 @@ namespace ManboShopAPI.Application.Services
 
 		public async Task<ProductDto> CreateProductAsync(ProductForCreateDto productDto)
 		{
+			var uploadedImageUrls = new List<string>();
 			try
 			{
 				await _unitOfWork.BeginTransactionAsync();
@@ -177,6 +181,8 @@ namespace ManboShopAPI.Application.Services
 					foreach (var image in productDto.Images)
 					{
 						string imageUrl = await _cloudinaryService.UploadImageAsync(image, folder, $"{FileConstants.FileNames.ProductImage}_{product.Id}");
+
+						uploadedImageUrls.Add(imageUrl);
 						productImages.Add(new ProductImage
 						{
 							ProductId = product.Id,
@@ -234,6 +240,7 @@ namespace ManboShopAPI.Application.Services
 				// 5. Xử lý variants
 				var variantValues = new List<VariantValue>();
 				var productVariantValues = new List<ProductVariantValue>();
+				
 
 				foreach (var variantDto in productDto.Variants)
 				{
@@ -250,25 +257,50 @@ namespace ManboShopAPI.Application.Services
 							Value = valueDto.Value,
 							CreatedAt = DateTime.UtcNow
 						};
-
-						if (valueDto.FileImage != null)
-						{
-							string folder = FileConstants.GetFullPath("products", $"PRODUCT_{product.Id}/VARIANT_{productVariant.Name}_{productVariant.Id}/");
-							variantValue.ImageUrl = await _cloudinaryService.UploadImageAsync(
-								valueDto.FileImage,
-								folder,
-								FileConstants.FileNames.ProductVariantImage
-							);
-						}
-
+						// Lưu variantValue trước để có ID
+						await _variantValueRepository.AddAsync(variantValue);
+						await _variantValueRepository.SaveChangesAsync();
 						variantValues.Add(variantValue);
-					}
-				}
+						
+						if (valueDto.FileImages != null && valueDto.FileImages.Count() > 0)
+						{
+							
+							if(valueDto.FileImages.Count() > 10)
+							{
+								throw new ProductBadRequestException("Chỉ được phép upload tối đa 10 hình ảnh cho một giá trị biến thể sản phẩm");
+							}
 
-				if (variantValues.Any())
-				{
-					await _variantValueRepository.AddRangeAsync(variantValues);
-					await _variantValueRepository.SaveChangesAsync();
+							var variantValueImages = new List<VariantValueImage>();
+							foreach (var fileImage in valueDto.FileImages)
+							{
+								if (fileImage == null) continue;
+								
+
+								string folder = FileConstants.GetFullPath("products", $"PRODUCT_{product.Id}/VARIANT_{productVariant.Name}_{productVariant.Id}/");
+								var ImageUrl = await _cloudinaryService.UploadImageAsync(
+									fileImage,
+									folder,
+									FileConstants.FileNames.ProductVariantImage
+								);
+								var variantValueImage = new VariantValueImage
+								{
+									VariantValueId = variantValue.Id,
+									CreatedAt = DateTime.UtcNow,
+									UpdatedAt = DateTime.UtcNow,
+									ImageUrl = ImageUrl,
+								};
+								uploadedImageUrls.Add(ImageUrl);
+								variantValueImages.Add(variantValueImage);
+							}
+
+							if (variantValueImages != null && variantValueImages.Any())
+							{
+								await _variantValueImageRepository.AddRangeAsync(variantValueImages);
+								await _variantValueImageRepository.SaveChangesAsync();
+							}
+
+						}
+					}
 				}
 
 				// 6. Xử lý product variant values
@@ -324,10 +356,25 @@ namespace ManboShopAPI.Application.Services
 				_logger.LogInfo($"Tạo sản phẩm mới '{product.Name}' thành công.");
 				return productDTO;
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
 				await _unitOfWork.RollbackAsync();
-				_logger.LogError($"Tạo sản phẩm mới '{productDto.Name}' thất bại.");
+
+				// Xóa tất cả hình ảnh đã upload trong trường hợp thất bại
+				if (uploadedImageUrls.Any())
+				{
+					try
+					{
+						await _cloudinaryService.DeleteImagesAsync(uploadedImageUrls);
+						_logger.LogInfo($"Đã xóa {uploadedImageUrls.Count} hình ảnh đã upload do tạo sản phẩm thất bại.");
+					}
+					catch (Exception deleteEx)
+					{
+						_logger.LogError($"Lỗi khi xóa hình ảnh sau khi tạo sản phẩm thất bại: {deleteEx.Message}");
+					}
+				}
+
+				_logger.LogError($"Tạo sản phẩm mới '{productDto.Name}' thất bại. Error: {ex.Message}");
 				throw;
 			}
 		}
@@ -367,7 +414,7 @@ namespace ManboShopAPI.Application.Services
 				await UpdateProductAttributesAsync(productId, productDto.AttributeForUpdateDtos);
 
 				// 3. Cập nhật variants và variant values
-				await UpdateProductVariantsAsync(productId, productDto.Variants);
+				//await UpdateProductVariantsAsync(productId, productDto.Variants);
 
 				// 4. Cập nhật product variant values
 				await UpdateProductVariantValuesAsync(productId, productDto.VariantValues);
@@ -614,24 +661,24 @@ namespace ManboShopAPI.Application.Services
 					);
 
 					// Xử lý upload ảnh nếu có
-					if (valueDto.FileImage != null)
-					{
-						if (!string.IsNullOrEmpty(variantValue.ImageUrl))
-						{
-							var publicId = _cloudinaryService.GetPublicIdFromUrl(variantValue.ImageUrl);
-							await _cloudinaryService.DeleteImageAsync(publicId);
-						}
+					//if (valueDto.FileImage != null)
+					//{
+					//	if (!string.IsNullOrEmpty(variantValue.ImageUrl))
+					//	{
+					//		var publicId = _cloudinaryService.GetPublicIdFromUrl(variantValue.ImageUrl);
+					//		await _cloudinaryService.DeleteImageAsync(publicId);
+					//	}
 
-						string folder = FileConstants.GetFullPath("products",
-							$"PRODUCT_{productId}/VARIANT_{variant.Name}_{variant.Id}/");
-						variantValue.ImageUrl = await _cloudinaryService.UploadImageAsync(
-							valueDto.FileImage,
-							folder,
-							FileConstants.FileNames.ProductVariantImage
-						);
+					//	string folder = FileConstants.GetFullPath("products",
+					//		$"PRODUCT_{productId}/VARIANT_{variant.Name}_{variant.Id}/");
+					//	variantValue.ImageUrl = await _cloudinaryService.UploadImageAsync(
+					//		valueDto.FileImage,
+					//		folder,
+					//		FileConstants.FileNames.ProductVariantImage
+					//	);
 
-						_variantValueRepository.Update(variantValue);
-					}
+					//	_variantValueRepository.Update(variantValue);
+					//}
 
 					variantValuePairs.Add((variantValue.Id, variantValue.Value));
 				}

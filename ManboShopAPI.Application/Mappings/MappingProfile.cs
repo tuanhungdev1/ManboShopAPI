@@ -18,6 +18,7 @@ using ManboShopAPI.Application.DTOs.ProductImageDtos;
 using ManboShopAPI.Application.DTOs.UserDtos;
 using ManboShopAPI.Application.DTOs.VariantDtos;
 using ManboShopAPI.Application.Mappings.MapperResolver;
+using ManboShopAPI.Application.Services;
 using ManboShopAPI.Domain.Entities;
 
 namespace ManboShopAPI.Application.Mappings
@@ -82,6 +83,8 @@ namespace ManboShopAPI.Application.Mappings
 			CreateMap<Variant, ProductVariantDto>();
 			CreateMap<VariantValue, VariantValueDto>();
 			CreateMap<ProductVariantValue, ProductVariantValueDto>();
+
+			CreateMap<VariantValueImage, VariantValueImageDto>();
 
 			CreateMap<ProductForCreateDto, Product>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());

@@ -1,25 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ManboShopAPI.Application.Common.Request;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Globalization;
 
-namespace ManboShopAPI.Application.Common.Request
+namespace ManboShopAPI.ModelBinder
 {
-	[ModelBinder(BinderType = typeof(ProductRequestParametersBinder))]
-	public class ProductRequestParameters : RequestParameters
-	{
-        public ICollection<string>? Brands { get; set; } = new List<string>();
-        public ICollection<string>? Categories { get; set; } = new List<string>();
-        public string? PriceRange { get; set; }  
-        public ICollection<string>? Colors { get; set; } = new List<string>();
-        public ICollection<string>? Sizes { get; set; } = new List<string>();
-    }
-
-    public class PriceRange
-    {
-        public int Min { get; set; } = 0;
-        public int Max { get; set; } = 100000000;
-    }
-
 	public class ProductRequestParametersBinder : IModelBinder
 	{
 		public Task BindModelAsync(ModelBindingContext bindingContext)
@@ -67,4 +51,5 @@ namespace ManboShopAPI.Application.Common.Request
 			return Task.CompletedTask;
 		}
 	}
+
 }
