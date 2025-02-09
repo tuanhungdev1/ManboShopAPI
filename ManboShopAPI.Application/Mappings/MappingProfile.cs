@@ -107,7 +107,7 @@ namespace ManboShopAPI.Application.Mappings
 			//ADDRESS
 			CreateMap<Address, AddressDto>();
 			CreateMap<AddressForCreateDto, Address>()
-				.ForMember(dest => dest.Id, opt => opt.Ignore());
+				.ForMember(dest => dest.Id, opt => opt.Ignore()).ReverseMap();
 			CreateMap<AddressForUpdateDto, Address>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			//ADDRESS

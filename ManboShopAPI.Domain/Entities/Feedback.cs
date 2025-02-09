@@ -18,6 +18,5 @@ namespace ManboShopAPI.Domain.Entities
         public User User { get; set; }
         public Product Product { get; set; }
 		public ICollection<FeedbackLike>? FeedbackLikes { get; set; } = new List<FeedbackLike>();
-		public ICollection<FeedbackReport>? FeedbackReports { get; set; } = new List<FeedbackReport>();
 	}
 }

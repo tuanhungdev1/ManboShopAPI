@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ManboShopAPI.Application.Contracts;
+using ManboShopAPI.Application.DTOs.AddressDtos;
 using ManboShopAPI.Application.DTOs.CartDtos;
 using ManboShopAPI.Application.DTOs.CartItemDtos;
 using ManboShopAPI.Application.DTOs.OrderDtos;
@@ -9,14 +10,18 @@ using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using Microsoft.EntityFrameworkCore;
+using ManboShopAPI.Domain.Enums;
+using ManboShopAPI.Application.Common.Helpers;
 
 public class CartService : ICartService
 {
 	private readonly IUnitOfWork _unitOfWork;
 	private readonly IMapper _mapper;
 	private readonly ILoggerService _logger;
+	private readonly IEmailSender _emailSender;
 
 	public CartService(
+		IEmailSender emailSender,
 		IUnitOfWork unitOfWork,
 		IMapper mapper,
 		ILoggerService logger)
@@ -24,6 +29,7 @@ public class CartService : ICartService
 		_unitOfWork = unitOfWork;
 		_mapper = mapper;
 		_logger = logger;
+		_emailSender = emailSender;
 	}
 
 	public async Task<CartDto> GetCartBySessionIdAsync(string sessionId)
@@ -332,6 +338,36 @@ public class CartService : ICartService
 			if (!cart.CartItems.Any())
 				throw new CartBadRequestException("Giỏ hàng trống");
 
+			if(orderForCreateDto.UserId != cart.UserId)
+				throw new CartBadRequestException("Người dùng không khớp với giỏ hàng");
+
+			if(orderForCreateDto.AddressId == null && orderForCreateDto.AddressForCreate == null)
+				throw new CartBadRequestException("Địa chỉ không được để trống");
+
+			if(orderForCreateDto.AddressId != null && orderForCreateDto.AddressForCreate != null)
+				throw new CartBadRequestException("Chỉ được chọn một trong hai AddressId hoặc AddressForCreate");
+
+
+			if(orderForCreateDto.AddressId != null)
+			{
+				var address = await _unitOfWork.AddressRepository.GetByIdAsync(orderForCreateDto.AddressId.Value);
+				if(address == null)
+					throw new AddressNotFoundException($"Không tìm thấy địa chỉ {orderForCreateDto.AddressId}");
+				orderForCreateDto.AddressForCreate = _mapper.Map<AddressForCreateDto>(address);
+			}
+
+			if(orderForCreateDto.AddressForCreate != null)
+			{
+				var address = _mapper.Map<Address>(orderForCreateDto.AddressForCreate);
+				await _unitOfWork.AddressRepository.AddAsync(address);
+				await _unitOfWork.SaveChangesAsync();
+				orderForCreateDto.AddressId = address.Id;
+			}
+			var addressForUser = await _unitOfWork.AddressRepository.GetByIdAsync(orderForCreateDto.AddressId.Value);
+			
+			if(addressForUser == null)
+				throw new AddressNotFoundException($"Không tìm thấy địa chỉ {orderForCreateDto.AddressId}");
+
 			// Kiểm tra số lượng tồn kho
 			foreach (var item in cart.CartItems)
 			{
@@ -340,12 +376,35 @@ public class CartService : ICartService
 						$"Sản phẩm {item.ProductVariantValue.Product.Name} - SKU: {item.ProductVariantValue.Sku} không đủ số lượng trong kho");
 			}
 
-			var order = _mapper.Map<Order>(orderForCreateDto);
-			order.Total = await GetCartTotalAsync(cartId);
+			decimal subTotal = await GetCartTotalAsync(cartId);
+			decimal shippingFee = 14000;
+
+			var orderAddress = new OrderAddress
+			{
+				Name = addressForUser.Name,
+				PhoneNumber = addressForUser.PhoneNumber,
+				AddressLine = addressForUser.AddressLine,
+				City = addressForUser.City,
+				State = addressForUser.State,
+				Country = addressForUser.Country,
+				PostalCode = addressForUser.PostalCode
+			};
+
+			var order = new Order
+			{
+				UserId = orderForCreateDto.UserId,
+				ShippingAddress = orderAddress,
+				PaymentMethod = orderForCreateDto.PaymentMethod,
+				Note = orderForCreateDto.Note,
+				Status = OrderStatus.Pending,
+				SubTotal = subTotal,
+				ShippingFee = shippingFee,
+				Total = subTotal + shippingFee,
+				PaymentStatus = PaymentStatus.Pending,
+			};
 
 			await _unitOfWork.OrderRepository.AddAsync(order);
 			await _unitOfWork.SaveChangesAsync();
-
 			// Tạo chi tiết đơn hàng
 			foreach (var item in cart.CartItems)
 			{
@@ -370,11 +429,22 @@ public class CartService : ICartService
 			await _unitOfWork.CartRepository.ClearCartAsync(cartId);
 			await _unitOfWork.CommitAsync();
 
+			try
+			{
+				await _emailSender.SendOrderConfirmationEmailAsync(order);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError($"Failed to send order confirmation email: {ex.Message}");
+				// Không throw exception vì đơn hàng vẫn được tạo thành công
+			}
+
 			return _mapper.Map<OrderDto>(order);
 		}
 		catch (Exception)
 		{
 			await _unitOfWork.RollbackAsync();
+			_logger.LogError("Lỗi khi tạo đơn hàng");
 			throw;
 		}
 	}

@@ -32,7 +32,6 @@
 		[Required(ErrorMessage = "Mã bưu điện không được để trống.")]
 		[MaxLength(100, ErrorMessage = "Mã bưu điện không được vượt quá 100 ký tự.")]
 		public string PostalCode { get; set; }
-
 		public bool IsDefault { get; set; }
 	}
 

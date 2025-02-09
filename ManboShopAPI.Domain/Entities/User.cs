@@ -23,6 +23,5 @@ namespace ManboShopAPI.Domain.Entities
 		public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public ICollection<Address> Addresses { get; set; } = new List<Address>();
 		public ICollection<FeedbackLike> FeedbackLikes { get; set; } = new List<FeedbackLike>();
-		public ICollection<FeedbackReport> FeedbackReports { get; set; } = new List<FeedbackReport>();
 	}
 }

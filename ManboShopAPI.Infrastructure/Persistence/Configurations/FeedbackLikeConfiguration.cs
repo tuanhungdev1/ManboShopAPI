@@ -9,17 +9,17 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 		public void Configure(EntityTypeBuilder<FeedbackLike> builder)
 		{
 
-			builder.HasOne(a => a.User)
+			builder.HasOne(fl => fl.User)
 				.WithMany(u => u.FeedbackLikes)
-				.HasForeignKey(a => a.UserId)
-				.IsRequired(true)
-				.OnDelete(DeleteBehavior.NoAction);
+				.HasForeignKey(fl => fl.UserId)
+				.OnDelete(DeleteBehavior.Cascade);
 
 			builder.HasOne(a => a.Feedback)
 				.WithMany(u => u.FeedbackLikes)
 				.HasForeignKey(a => a.FeedbackId)
-				.IsRequired(false)
-				.OnDelete(DeleteBehavior.SetNull);
+				.OnDelete(DeleteBehavior.NoAction);
+
+			builder.HasIndex(fl => new { fl.UserId, fl.FeedbackId }).IsUnique();
 		}
 	}
 }

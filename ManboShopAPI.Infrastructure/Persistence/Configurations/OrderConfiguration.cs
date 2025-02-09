@@ -16,6 +16,11 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 				.OnDelete(DeleteBehavior.Cascade);
 
 			
+			builder.HasOne(o => o.ShippingAddress)
+				.WithOne(sa => sa.Order)
+				.HasForeignKey<OrderAddress>(sa => sa.OrderId)
+				.IsRequired(true)
+				.OnDelete(DeleteBehavior.Cascade);
 		}
 	}
 }
