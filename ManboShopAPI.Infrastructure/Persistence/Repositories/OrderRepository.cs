@@ -16,20 +16,26 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 			switch (orderKey.ToLower())
 			{
-				case "createdat":
-					query = orderBy?.ToLower() == "desc" ? query.OrderByDescending(o => o.CreatedAt) : query.OrderBy(o => o.CreatedAt);
+				case "newest":
+					query = query.OrderByDescending(o => o.CreatedAt);
 					break;
-				case "total":
-					query = orderBy?.ToLower() == "desc" ? query.OrderByDescending(o => o.Total) : query.OrderBy(o => o.Total);
+				case "oldest":
+					query = query.OrderBy(o => o.CreatedAt);
 					break;
-				case "status":
-					query = orderBy?.ToLower() == "desc" ? query.OrderByDescending(o => o.Status) : query.OrderBy(o => o.Status);
+				case "lowest-price":
+					query = query.OrderBy(o => o.Total);
 					break;
-				case "username":
-					query = orderBy?.ToLower() == "desc" ? query.OrderByDescending(o => o.User.UserName) : query.OrderBy(o => o.User.UserName);
+				case "highest-price":
+					query = query.OrderByDescending(o => o.Total);
+					break;
+				case "most-items":
+					query = query.OrderByDescending(o => o.OrderDetails.Count);
+					break;
+				case "fewest-items":
+					query = query.OrderBy(o => o.OrderDetails.Count);
 					break;
 				default:
-					query = query.OrderBy(o => o.Id); // Default ordering
+					query = query.OrderBy(o => o.Id);
 					break;
 			}
 			return query;
@@ -80,9 +86,29 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 			return new PagedList<Order>(items, totalCount, orderRequestParameters.PageNumber, orderRequestParameters.PageSize);
 		}
 
-		public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(int userId, bool asNoTracking = false)
+
+
+		public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(int userId, OrderForUserRequestParameters orderForUserRequestParameters)
 		{
-			return await FindByCondition(order => order.UserId == userId, asNoTracking).ToListAsync();
+			var query = _context.Orders
+				.Include(o => o.OrderDetails)
+					.ThenInclude(od => od.ProductVariantValue)
+						.ThenInclude(pvv => pvv.Product)
+				.Where(o => o.UserId == userId)
+				.AsQueryable();
+
+			if (!string.IsNullOrWhiteSpace(orderForUserRequestParameters.SearchTerm))
+			{
+				var searchTerm = orderForUserRequestParameters.SearchTerm.Trim().ToLower();
+				query = query.Where(o => o.OrderDetails.Any(od => od.ProductVariantValue.Product.Name.ToLower().Contains(searchTerm)));
+			}
+
+			if (!string.IsNullOrWhiteSpace(orderForUserRequestParameters.OrderBy))
+			{
+				query = ApplyOrdering(query, orderForUserRequestParameters.OrderBy, orderForUserRequestParameters.OrderKey);
+			}
+
+			return await query.ToListAsync();
 		}
 
 

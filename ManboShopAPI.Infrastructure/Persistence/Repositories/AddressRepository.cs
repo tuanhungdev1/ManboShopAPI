@@ -17,8 +17,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 			var query = _context.Addresses
 				.Where(a => a.UserId == userId)
-				.OrderByDescending(a => a.IsDefault)
-				.ThenByDescending(a => a.CreatedAt);
+				.OrderByDescending(a => a.CreatedAt);
 
 			return asNoTracking
 				? await query.AsNoTracking().ToListAsync()

@@ -4,6 +4,7 @@ using ManboShopAPI.Application.DTOs.CartDtos;
 using ManboShopAPI.Application.DTOs.CartItemDtos;
 using ManboShopAPI.Application.DTOs.OrderDtos;
 using ManboShopAPI.Filters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 using System.Security.Claims;
@@ -208,24 +209,22 @@ namespace ManboShopAPI.Controllers
 		}
 
 		[HttpPost("checkout")]
+		[Authorize]
 		[ValidationFilter]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<ActionResult<OrderDto>> CheckoutCart([FromBody] OrderForCreateDto orderForCreateDto)
 		{
 			OrderDto order;
-
+			var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 			if (User.Identity.IsAuthenticated)
 			{
-				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-				var userCart = await _cartService.GetOrCreateCartByUserAsync(userId);
-				order = await _cartService.CheckoutCartAsync(userCart.Id, orderForCreateDto);
+				order = await _cartService.CheckoutCartAsync(userId, orderForCreateDto);
 			}
 			else
 			{
 				var sessionId = _sessionService.GetSessionId(HttpContext);
-				var sessionCart = await _cartService.GetCartBySessionIdAsync(sessionId);
-				order = await _cartService.CheckoutCartAsync(sessionCart.Id, orderForCreateDto);
+				order = await _cartService.CheckoutCartAsync(userId, orderForCreateDto);
 				_sessionService.ClearSessionId(HttpContext);
 			}
 

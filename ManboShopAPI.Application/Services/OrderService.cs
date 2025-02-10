@@ -35,9 +35,9 @@ public class OrderService : IOrderService
 		return _mapper.Map<OrderDto>(order);
 	}
 
-	public async Task<IEnumerable<OrderDto>> GetOrdersByUserIdAsync(int userId)
+	public async Task<IEnumerable<OrderDto>> GetOrdersByUserIdAsync(int userId, OrderForUserRequestParameters orderForUserRequestParameters)
 	{
-		var orders = await _unitOfWork.OrderRepository.GetOrdersByUserIdAsync(userId, true);
+		var orders = await _unitOfWork.OrderRepository.GetOrdersByUserIdAsync(userId, orderForUserRequestParameters);
 		return _mapper.Map<IEnumerable<OrderDto>>(orders);
 	}
 

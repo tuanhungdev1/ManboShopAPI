@@ -7,6 +7,7 @@ using ManboShopAPI.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
+using System.Security.Claims;
 using System.Text.Json;
 
 [ApiController]
@@ -53,11 +54,12 @@ public class OrderController : ControllerBase
 		});
 	}
 
-	[HttpGet("user/{userId:int}")]
+	[HttpGet("user")]
 	[ProducesResponseType(StatusCodes.Status200OK)]
-	public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrdersByUserId(int userId)
+	public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrdersByUserId([FromQuery] OrderForUserRequestParameters orderForUserRequestParameters)
 	{
-		var orders = await _orderService.GetOrdersByUserIdAsync(userId);
+		var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+		var orders = await _orderService.GetOrdersByUserIdAsync(userId, orderForUserRequestParameters);
 		return Ok(new ApiResponse<object>
 		{
 			StatusCode = 200,

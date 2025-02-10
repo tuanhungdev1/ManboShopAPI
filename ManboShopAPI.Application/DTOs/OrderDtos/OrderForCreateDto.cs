@@ -1,15 +1,15 @@
 ﻿using ManboShopAPI.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
-using ManboShopAPI.Application.DTOs.AddressDtos;
+
 
 namespace ManboShopAPI.Application.DTOs.OrderDtos
 {
 	public class OrderForCreateDto
 	{
-		[Required(ErrorMessage = "Người dùng không được để trống.")]
-		public int UserId { get; set; }
-        public int? AddressId { get; set; }
-        public AddressForCreateDto? AddressForCreate { get; set; }
+		[Required(ErrorMessage = "Giỏ hàng không được để trống.")]
+        public int CartId { get; set; }
+        [Required(ErrorMessage = "Địa chỉ không được để trống.")]
+        public int AddressId { get; set; }
 		[Required(ErrorMessage = "Phương thức thanh toán không được để trống.")]
         public PaymentMethod PaymentMethod { get; set; }
 

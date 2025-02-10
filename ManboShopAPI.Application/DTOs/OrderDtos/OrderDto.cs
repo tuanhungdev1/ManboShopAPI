@@ -6,8 +6,7 @@ namespace ManboShopAPI.Application.DTOs.OrderDtos
 	public class OrderDto
 	{
 		public int Id { get; set; }
-		public int? UserId { get; set; }
-        public string? SessionId { get; set; }
+		public int UserId { get; set; }
         public string? Note { get; set; }
 		public OrderStatus Status { get; set; }
 		public decimal Total { get; set; }

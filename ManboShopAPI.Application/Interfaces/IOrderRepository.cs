@@ -19,6 +19,6 @@ namespace ManboShopAPI.Application.Interfaces
 		Task<decimal> GetDailyRevenueAsync(DateTime date);
 		Task<bool> HasUserPurchasedProductAsync(int userId, int productId);
 		Task<PagedList<Order>> FetchAllOrderAsync(OrderRequestParameters orderRequestParameters);
-		Task<IEnumerable<Order>> GetOrdersByUserIdAsync(int userId, bool asNoTracking = false);
+		Task<IEnumerable<Order>> GetOrdersByUserIdAsync(int userId, OrderForUserRequestParameters orderForUserRequestParameters);
 	}
 }

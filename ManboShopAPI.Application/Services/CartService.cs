@@ -11,7 +11,7 @@ using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
 using Microsoft.EntityFrameworkCore;
 using ManboShopAPI.Domain.Enums;
-using ManboShopAPI.Application.Common.Helpers;
+
 
 public class CartService : ICartService
 {
@@ -319,13 +319,20 @@ public class CartService : ICartService
 		}
 	}
 
-	public async Task<OrderDto> CheckoutCartAsync(int cartId, OrderForCreateDto orderForCreateDto)
+	public async Task<OrderDto> CheckoutCartAsync(int userId, OrderForCreateDto orderForCreateDto)
 	{
 		try
 		{
 			await _unitOfWork.BeginTransactionAsync();
 
-			var cart = await _unitOfWork.CartRepository.FindByCondition(c => c.Id == cartId)
+			var user = await _unitOfWork.UserRepository.FindByCondition(u => u.Id == userId)
+														.Include(u => u.Addresses)
+														.FirstOrDefaultAsync();
+														
+			if (user == null)
+				throw new UserNotFoundException($"Không tìm thấy người dùng {userId}");
+
+			var cart = await _unitOfWork.CartRepository.FindByCondition(c => c.Id == orderForCreateDto.CartId)
 													 .AsTracking()
 													 .Include(c => c.CartItems)
 													 .ThenInclude(ci => ci.ProductVariantValue)
@@ -333,38 +340,12 @@ public class CartService : ICartService
 													 .FirstOrDefaultAsync();
 
 			if (cart == null)
-				throw new CartNotFoundException($"Không tìm thấy giỏ hàng {cartId}");
+				throw new CartNotFoundException($"Không tìm thấy giỏ hàng {orderForCreateDto.CartId}");
 
 			if (!cart.CartItems.Any())
 				throw new CartBadRequestException("Giỏ hàng trống");
 
-			if(orderForCreateDto.UserId != cart.UserId)
-				throw new CartBadRequestException("Người dùng không khớp với giỏ hàng");
-
-			if(orderForCreateDto.AddressId == null && orderForCreateDto.AddressForCreate == null)
-				throw new CartBadRequestException("Địa chỉ không được để trống");
-
-			if(orderForCreateDto.AddressId != null && orderForCreateDto.AddressForCreate != null)
-				throw new CartBadRequestException("Chỉ được chọn một trong hai AddressId hoặc AddressForCreate");
-
-
-			if(orderForCreateDto.AddressId != null)
-			{
-				var address = await _unitOfWork.AddressRepository.GetByIdAsync(orderForCreateDto.AddressId.Value);
-				if(address == null)
-					throw new AddressNotFoundException($"Không tìm thấy địa chỉ {orderForCreateDto.AddressId}");
-				orderForCreateDto.AddressForCreate = _mapper.Map<AddressForCreateDto>(address);
-			}
-
-			if(orderForCreateDto.AddressForCreate != null)
-			{
-				var address = _mapper.Map<Address>(orderForCreateDto.AddressForCreate);
-				await _unitOfWork.AddressRepository.AddAsync(address);
-				await _unitOfWork.SaveChangesAsync();
-				orderForCreateDto.AddressId = address.Id;
-			}
-			var addressForUser = await _unitOfWork.AddressRepository.GetByIdAsync(orderForCreateDto.AddressId.Value);
-			
+			var addressForUser = await _unitOfWork.AddressRepository.GetByIdAsync(orderForCreateDto.AddressId);
 			if(addressForUser == null)
 				throw new AddressNotFoundException($"Không tìm thấy địa chỉ {orderForCreateDto.AddressId}");
 
@@ -375,8 +356,8 @@ public class CartService : ICartService
 					throw new CartBadRequestException(
 						$"Sản phẩm {item.ProductVariantValue.Product.Name} - SKU: {item.ProductVariantValue.Sku} không đủ số lượng trong kho");
 			}
-
-			decimal subTotal = await GetCartTotalAsync(cartId);
+			
+			decimal subTotal = await GetCartTotalAsync(orderForCreateDto.CartId);
 			decimal shippingFee = 14000;
 
 			var orderAddress = new OrderAddress
@@ -392,7 +373,7 @@ public class CartService : ICartService
 
 			var order = new Order
 			{
-				UserId = orderForCreateDto.UserId,
+				UserId = userId,
 				ShippingAddress = orderAddress,
 				PaymentMethod = orderForCreateDto.PaymentMethod,
 				Note = orderForCreateDto.Note,
@@ -426,7 +407,7 @@ public class CartService : ICartService
 			}
 
 			// Xóa giỏ hàng
-			await _unitOfWork.CartRepository.ClearCartAsync(cartId);
+			await _unitOfWork.CartRepository.ClearCartAsync(orderForCreateDto.CartId);
 			await _unitOfWork.CommitAsync();
 
 			try

@@ -31,6 +31,6 @@ namespace ManboShopAPI.Application.Contracts
 		Task MergeSessionCartToUserCart(string sessionId, int userId);
 
 		// Phương thức checkout
-		Task<OrderDto> CheckoutCartAsync(int cartId, OrderForCreateDto orderForCreateDto);
+		Task<OrderDto> CheckoutCartAsync(int userId, OrderForCreateDto orderForCreateDto);
 	}
 }
