@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.SqlServer.Server;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -51,6 +50,56 @@ public class AuthService : IAuthService
 		_configuration = configuration;
 		_googleSettings = googleSettings.Value;
 		_facebookSettings = facebookSettings.Value;
+	}
+
+	public async Task<(UserDto adminDto, TokenDto tokenDto)> LoginAdminAsync(UserForLoginDto loginDto)
+	{
+		try
+		{
+			await _unitOfWork.BeginTransactionAsync();
+			var admin =  await _userManager.FindByEmailAsync(loginDto.UserName) ?? await _userManager.FindByNameAsync(loginDto.UserName);
+
+			if (admin == null)
+			{
+				_logger.LogError("Không tìm thấy thông tin người dùng.");
+				throw new UserNotFoundException("Tài khoản không tồn tại trong hệ thống.");
+			}
+
+			var result = await _signInManager.PasswordSignInAsync(
+				admin.UserName!,
+				loginDto.Password,
+				loginDto.IsRemember,
+				lockoutOnFailure: false
+			);
+
+			if (!result.Succeeded)
+			{
+				_logger.LogError("Đăng nhập thất bại - Sai mật khẩu.");
+				throw new UserBadRequestException("Tên đăng nhập hoặc mật khẩu không chính xác.");
+			}
+
+			if (!await _userManager.IsInRoleAsync(admin, "Admin"))
+			{
+				_logger.LogError("Đăng nhập thất bại - Không có quyền truy cập.");
+				throw new UserBadRequestException("Tài khoản không có quyền truy cập.");
+			}
+
+			var adminDto = _mapper.Map<UserDto>(admin);
+			adminDto.Roles = await _userManager.GetRolesAsync(admin);
+
+			var tokenDto = await GenerateAndAssignTokensAsync(admin);
+
+			_logger.LogInfo($"Người dùng {admin.UserName} đăng nhập thành công");
+
+			await _unitOfWork.CommitAsync();
+			return (adminDto, tokenDto);
+
+		} catch (Exception)
+		{
+			_logger.LogError("Không thể đăng nhập");
+			await _unitOfWork.RollbackAsync();
+			throw;
+		}
 	}
 
 	public async Task<(UserDto userDto, TokenDto tokenDto)> LoginWithFacebookAsync(string credential)

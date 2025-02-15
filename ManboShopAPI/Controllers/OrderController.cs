@@ -25,17 +25,19 @@ public class OrderController : ControllerBase
 
 	[HttpGet]
 	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders([FromQuery] OrderRequestParameters parameters)
 	{
 		var (orders, metadata) = await _orderService.GetAllOrdersAsync(parameters);
-		Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(metadata));
+		
 
 		return Ok(new ApiResponse<object>
 		{
 			StatusCode = 200,
 			Success = true,
 			Message = "Lấy danh sách đơn hàng thành công.",
-			Data = orders
+			Data = orders,
+			Pagination = metadata
 		});
 	}
 
@@ -189,16 +191,17 @@ public class OrderController : ControllerBase
 	}
 
 	[HttpPut("{orderId:int}/cancel")]
+	[ValidationFilter]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
-	public async Task<ActionResult<OrderDto>> CancelOrder(int orderId, [FromBody] string? cancellationReason)
+	public async Task<ActionResult<OrderDto>> CancelOrder(int orderId, [FromBody] OrderForCancelDto orderForCancelDto)
 	{
-		var order = await _orderService.CancelOrderAsync(orderId, cancellationReason);
+		var order = await _orderService.CancelOrderAsync(orderId, orderForCancelDto.CancellationReason);
 		return Ok(new ApiResponse<object>
 		{
 			StatusCode = 200,
 			Success = true,
-			Message = $"Hủy đơn hàng {orderId} thành công.",
+			Message = $"Hủy đơn hàng #{orderId} thành công.",
 			Data = order
 		});
 	}

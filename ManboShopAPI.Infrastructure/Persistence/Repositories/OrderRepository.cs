@@ -3,6 +3,7 @@ using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 {
@@ -14,7 +15,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 		private IQueryable<Order> ApplyOrdering(IQueryable<Order> query, string orderBy, string orderKey)
 		{
-			switch (orderKey.ToLower())
+			switch (orderBy.ToLower())
 			{
 				case "newest":
 					query = query.OrderByDescending(o => o.CreatedAt);
@@ -43,17 +44,23 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 		public async Task<PagedList<Order>> FetchAllOrderAsync(OrderRequestParameters orderRequestParameters)
 		{
-			var query = _dbSet.AsNoTracking()
+			var query = _context.Orders
+				.Include(o => o.OrderDetails)
+					.ThenInclude(od => od.ProductVariantValue)
+						.ThenInclude(pvv => pvv.Product)
+				.Include(o => o.ShippingAddress)
 				.Include(o => o.User)
 				.AsQueryable();
 
 			if (!string.IsNullOrWhiteSpace(orderRequestParameters.SearchTerm))
 			{
 				var searchTerm = orderRequestParameters.SearchTerm.Trim().ToLower();
-				query = query.Where(order => order.User.LastName.ToLower().Contains(searchTerm) ||
-											 order.User.FirstName.ToLower().Contains(searchTerm) ||
-											 order.User.UserName.ToLower().Contains(searchTerm) ||
-											 order.User.Email.ToLower().Contains(searchTerm));
+				query = query.Where(o => o.OrderDetails.Any(od => od.ProductVariantValue.Product.Name.ToLower().Contains(searchTerm)));
+			}
+
+			if (!string.IsNullOrWhiteSpace(orderRequestParameters.OrderBy))
+			{
+				query = ApplyOrdering(query, orderRequestParameters.OrderBy, orderRequestParameters.OrderBy);
 			}
 
 			if (orderRequestParameters.OrderStatus.HasValue)
@@ -94,6 +101,8 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				.Include(o => o.OrderDetails)
 					.ThenInclude(od => od.ProductVariantValue)
 						.ThenInclude(pvv => pvv.Product)
+				.Include(o => o.ShippingAddress)
+				.Include(o => o.User)
 				.Where(o => o.UserId == userId)
 				.AsQueryable();
 
@@ -105,7 +114,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 			if (!string.IsNullOrWhiteSpace(orderForUserRequestParameters.OrderBy))
 			{
-				query = ApplyOrdering(query, orderForUserRequestParameters.OrderBy, orderForUserRequestParameters.OrderKey);
+				query = ApplyOrdering(query, orderForUserRequestParameters.OrderBy, orderForUserRequestParameters.OrderBy);
 			}
 
 			return await query.ToListAsync();

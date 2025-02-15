@@ -123,7 +123,14 @@ namespace ManboShopAPI.Application.Mappings
 			//ORDER
 
 			//ORDER DETAIL
-			CreateMap<OrderDetail, OrderDetailDto>();
+			CreateMap<OrderDetail, OrderDetailDto>()
+				.ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductVariantValue.ProductId))
+				.ForMember(dest => dest.ProductVariantValueId, opt => opt.MapFrom(src => src.ProductVariantValue.Id))
+				.ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.ProductVariantValue.Sku))
+				.ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.ProductVariantValue.Price))
+				.ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+				.ForMember(dest => dest.ProductVariantValue, opt => opt.MapFrom(src => src.ProductVariantValue))
+				.ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.ProductVariantValue.Product));
 			//ORDER DETAIL
 
 			//FAVORITE
@@ -228,6 +235,11 @@ namespace ManboShopAPI.Application.Mappings
 			CreateMap<FeedbackLike, FeedbackLikeDto>().ReverseMap();
 
 			// FEEDBACK LIKE
+
+
+			// ORDER ADDRESS
+			CreateMap<OrderAddress, OrderAddressDto>();
+			// ORDER ADDRESS
 		}
 	}
 }

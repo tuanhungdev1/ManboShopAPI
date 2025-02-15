@@ -82,6 +82,29 @@ public class AuthController : ControllerBase
 		});
 	}
 
+	[HttpPost("admin-login")]
+	[ValidationFilter]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<ActionResult<(UserDto, TokenDto)>> AdminLogin([FromBody] UserForLoginDto loginDto)
+	{
+		var (userDto, tokenDto) = await _authService.LoginAdminAsync(loginDto);
+		var token = new Token
+		{
+			AccessToken = tokenDto.AccessToken,
+			RefreshToken = tokenDto.RefreshToken
+		};
+		return Ok(new ApiResponse<object>
+		{
+			StatusCode = 200,
+			Success = true,
+			Message = "Đăng nhập thành công.",
+			Data = userDto,
+			Token = token
+		});
+	}
+
 	[HttpPost("facebook-login")]
 	[ValidationFilter]
 	[ProducesResponseType(StatusCodes.Status200OK)]
