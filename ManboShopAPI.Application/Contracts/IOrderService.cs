@@ -19,6 +19,6 @@ namespace ManboShopAPI.Application.Contracts
 		Task<IEnumerable<OrderDto>> GetRecentOrdersAsync(int count);
 		Task<IEnumerable<OrderDto>> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate);
 		Task<bool> HasUserPurchasedProductAsync(int userId, int productId);
-		Task<OrderDto> CancelOrderAsync(int orderId, string? cancellationReason);
+		Task<OrderDto> CancelOrderAsync(int orderId, int userId, string? cancellationReason);
 	}
 }

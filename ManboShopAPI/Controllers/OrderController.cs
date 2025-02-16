@@ -192,11 +192,13 @@ public class OrderController : ControllerBase
 
 	[HttpPut("{orderId:int}/cancel")]
 	[ValidationFilter]
+	[Authorize]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public async Task<ActionResult<OrderDto>> CancelOrder(int orderId, [FromBody] OrderForCancelDto orderForCancelDto)
 	{
-		var order = await _orderService.CancelOrderAsync(orderId, orderForCancelDto.CancellationReason);
+		var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+		var order = await _orderService.CancelOrderAsync(orderId, userId, orderForCancelDto.CancellationReason);
 		return Ok(new ApiResponse<object>
 		{
 			StatusCode = 200,

@@ -8,6 +8,7 @@ using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Enums;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 public class OrderService : IOrderService
@@ -15,12 +16,15 @@ public class OrderService : IOrderService
 	private readonly IUnitOfWork _unitOfWork;
 	private readonly IMapper _mapper;
 	private readonly ILoggerService _logger;
+	private readonly UserManager<User> _userManager;
 
 	public OrderService(
 		IUnitOfWork unitOfWork,
+		UserManager<User> userManager,
 		IMapper mapper,
 		ILoggerService logger)
 	{
+		_userManager = userManager;
 		_unitOfWork = unitOfWork;
 		_mapper = mapper;
 		_logger = logger;
@@ -211,7 +215,7 @@ public class OrderService : IOrderService
 	}
 
 
-	public async Task<OrderDto> CancelOrderAsync(int orderId, string? cancellationReason)
+	public async Task<OrderDto> CancelOrderAsync(int orderId, int userId , string? cancellationReason)
 	{
 		try
 		{
@@ -221,8 +225,23 @@ public class OrderService : IOrderService
 			if (order == null)
 				throw new OrderNotFoundException($"Không tìm thấy đơn hàng {orderId}");
 
+			var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+			var roles = await _userManager.GetRolesAsync(user);
+			var isAdmin = roles.Contains("Admin");
+			if (user == null)
+				throw new UserNotFoundException($"Không tìm thấy người dùng {userId}");
+			
+			// Kiểm tra quyền hạn
+			if (!isAdmin && order.UserId != userId)
+			{
+				throw new OrderBadRequestException(
+					$"Không thể hủy đơn hàng của người khác. " +
+					"Chỉ có thể hủy đơn hàng của chính mình hoặc bởi quản trị viên");
+			}
+			
 			// Kiểm tra trạng thái đơn hàng có được phép hủy hay không
-			if (!CanCancelOrder(order.Status))
+
+			if (!CanCancelOrder(order.Status) && !isAdmin)
 			{
 				throw new OrderBadRequestException(
 					$"Không thể hủy đơn hàng ở trạng thái {order.Status}. " +
@@ -243,6 +262,7 @@ public class OrderService : IOrderService
 
 			// Cập nhật trạng thái đơn hàng
 			order.Status = OrderStatus.Cancelled;
+			order.CancelledAt = DateTime.UtcNow;
 			order.Note = string.IsNullOrEmpty(order.Note)
 				? $"Lý do hủy: {cancellationReason}"
 				: $"{order.Note} | Lý do hủy: {cancellationReason}";
@@ -257,6 +277,7 @@ public class OrderService : IOrderService
 		catch (Exception)
 		{
 			await _unitOfWork.RollbackAsync();
+			_logger.LogError($"Hủy đơn hàng {orderId} thất bại");
 			throw;
 		}
 	}
@@ -267,4 +288,6 @@ public class OrderService : IOrderService
 			   status == OrderStatus.Confirmed ||
 			   status == OrderStatus.Processing;
 	}
+
+
 }

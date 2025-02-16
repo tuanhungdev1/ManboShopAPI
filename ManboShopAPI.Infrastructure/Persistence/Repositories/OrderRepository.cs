@@ -70,16 +70,19 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 			if (orderRequestParameters.FormDate.HasValue)
 			{
-				query = query.Where(order => order.CreatedAt >= orderRequestParameters.FormDate.Value);
+				var fromDate = orderRequestParameters.FormDate.Value.Date;
+				query = query.Where(o => o.CreatedAt >= fromDate);
 			}
+
 			if (orderRequestParameters.ToDate.HasValue)
 			{
-				query = query.Where(order => order.CreatedAt <= orderRequestParameters.ToDate.Value);
+				var toDate = orderRequestParameters.ToDate.Value.Date.AddDays(1);  // Thêm 1 ngày
+				query = query.Where(o => o.CreatedAt < toDate);
 			}
 
 			if (!string.IsNullOrWhiteSpace(orderRequestParameters.OrderBy))
 			{
-				query = ApplyOrdering(query, orderRequestParameters.OrderBy, orderRequestParameters.OrderKey);
+				query = ApplyOrdering(query, orderRequestParameters.OrderBy, orderRequestParameters.OrderBy);
 			}
 
 			var totalCount = await query.CountAsync();

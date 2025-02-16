@@ -1,4 +1,5 @@
 ﻿using ManboShopAPI.Domain.Enums;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ManboShopAPI.Application.Common.Request
 {
@@ -7,5 +8,7 @@ namespace ManboShopAPI.Application.Common.Request
         public OrderStatus? OrderStatus { get; set; }
         public DateTime? FormDate { get; set; }
 		public DateTime? ToDate { get; set; }
-    }
+
+	
+	}
 }
