@@ -6,7 +6,7 @@ namespace ManboShopAPI.Application.Interfaces
 {
 	public interface IFeedbackService
 	{
-		Task<IEnumerable<FeedbackDto>> GetAllFeedbacksAsync();
+		Task<(IEnumerable<FeedbackDto> feedbacks, MetaData metaData)> GetAllFeedbacksAsync(FeedbackRequestParameters feedbackRequestParameters);
 		Task<FeedbackDto> GetFeedbackByIdAsync(int id);
 		Task<(IEnumerable<FeedbackDto> feedbackDtos, MetaData metaData)> GetFeedbacksByProductIdAsync(
 	int productId,
@@ -34,5 +34,7 @@ namespace ManboShopAPI.Application.Interfaces
 		Task<FeedbackReportDto> UpdateReportStatusAsync(int reportId, ReportStatus status);
 		Task DeleteReportAsync(int reportId);
 		Task<IEnumerable<FeedbackReportDto>> GetPendingReportsAsync();
+
+		
 	}
 }

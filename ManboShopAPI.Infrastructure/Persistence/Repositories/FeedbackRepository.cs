@@ -11,6 +11,46 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 		}
 
+		public async Task<PagedList<Feedback>> GetAllFeedbackAsync(FeedbackRequestParameters feedbackRequestParameters)
+		{
+			var query = _dbSet
+				.AsNoTracking()
+				.Include(f => f.User)
+				.Include(f => f.Product)
+				.OrderByDescending(f => f.CreatedAt)
+				.AsQueryable();
+
+			if(!string.IsNullOrWhiteSpace(feedbackRequestParameters.SearchTerm))
+			{
+				var searchTerm = feedbackRequestParameters.SearchTerm.Trim().ToLower();
+				query = query.Where(f => f.Content.ToLower().Contains(searchTerm) || f.Title.ToLower().Contains(searchTerm));
+			}
+
+			if (feedbackRequestParameters.RateNumber.HasValue)
+			{
+				query = query.Where(f => f.Star == feedbackRequestParameters.RateNumber.Value);
+			}
+
+			if (feedbackRequestParameters.FromDate.HasValue)
+			{
+				query = query.Where(f => f.CreatedAt >= feedbackRequestParameters.FromDate.Value);
+			}
+
+			if (feedbackRequestParameters.ToDate.HasValue)
+			{
+				query = query.Where(f => f.CreatedAt <= feedbackRequestParameters.ToDate);
+			}
+
+			var totalItems = await query.CountAsync();
+
+			var items = await query
+				.Skip(feedbackRequestParameters.PageSize * (feedbackRequestParameters.PageNumber - 1))
+				.Take(feedbackRequestParameters.PageSize)
+				.ToListAsync();
+
+			return new PagedList<Feedback>(items, totalItems, feedbackRequestParameters.PageNumber, feedbackRequestParameters.PageSize);
+		}
+
 		public async Task<Feedback?> GetFeedbackWithDetailsAsync(int id, bool asNoTracking = false)
 		{
 			IQueryable<Feedback> query = _dbSet

@@ -6,6 +6,8 @@ namespace ManboShopAPI.Application.Contracts
 {
 	public interface IOrderService
 	{
+		Task<OrderDto> UpdateShippingStatusAsync(int order, OrderStatus status, string? note);
+		Task<OrderDto> UpdatePaymentStatusAsync(int order, PaymentStatus status, string? note);
 		Task<OrderDto> GetOrderByIdAsync(int orderId);
 		Task<IEnumerable<OrderDto>> GetOrdersByUserIdAsync(int userId, OrderForUserRequestParameters orderForUserRequestParameters);
 		Task<(IEnumerable<OrderDto> orders, MetaData metaData)> GetAllOrdersAsync(OrderRequestParameters parameters);

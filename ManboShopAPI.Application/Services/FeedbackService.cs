@@ -39,11 +39,12 @@ namespace ManboShopAPI.Application.Services
 			_logger = logger;
 		}
 
-		public async Task<IEnumerable<FeedbackDto>> GetAllFeedbacksAsync()
+		public async Task<(IEnumerable<FeedbackDto> feedbacks, MetaData metaData)> GetAllFeedbacksAsync(FeedbackRequestParameters feedbackRequestParameters)
 		{
-			var feedbacks = await _feedbackRepository.GetAllAsync(true);
+			var feedbacks = await _feedbackRepository.GetAllFeedbackAsync(feedbackRequestParameters);
 			_logger.LogInfo("Lấy danh sách đánh giá thành công");
-			return _mapper.Map<IEnumerable<FeedbackDto>>(feedbacks);
+			var feedbackDtos = _mapper.Map<IEnumerable<FeedbackDto>>(feedbacks);
+			return (feedbackDtos, feedbacks.MetaData);
 		}
 
 		public async Task<FeedbackDto> GetFeedbackByIdAsync(int id)

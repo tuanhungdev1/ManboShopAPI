@@ -6,6 +6,7 @@ namespace ManboShopAPI.Application.Interfaces
 {
 	public interface IFeedbackRepository : IRepositoryBase<Feedback>
 	{
+		Task<PagedList<Feedback>> GetAllFeedbackAsync(FeedbackRequestParameters feedbackRequestParameters);
 		Task<int> GetFeedbackLikesCountAsync(int feedbackId);
 		Task<bool> IsLikedByUserAsync(int feedbackId, int userId);
 		Task<Feedback?> GetFeedbackWithDetailsAsync(int id, bool asNoTracking = false);

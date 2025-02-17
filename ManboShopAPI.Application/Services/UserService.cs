@@ -1,20 +1,27 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet.Actions;
+using ManboShopAPI.Application.Common.Constants;
 using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.Contracts;
 using ManboShopAPI.Application.DTOs.UserDtos;
 using ManboShopAPI.Application.Interfaces;
+using ManboShopAPI.Application.UnitOfWork;
 using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ManboShopAPI.Application.Services
 {
 	public class UserService : IUserService
 	{
 		private readonly IUserRepository _userRepository;
+		private readonly ICloudinaryService _cloudinaryService;
+		private readonly IUnitOfWork _unitOfWork;
 		private readonly ICartRepository _cartRepository;
 		private readonly UserManager<User> _userManager;
 		private readonly IMapper _mapper;
@@ -22,6 +29,8 @@ namespace ManboShopAPI.Application.Services
 		private readonly ILoggerService _logger;
 
 		public UserService(
+			ICloudinaryService cloudinaryService,
+			IUnitOfWork unitOfWork,
 			IUserRepository userRepository,
 			ICartRepository cartRepository,
 			UserManager<User> userManager,
@@ -30,11 +39,64 @@ namespace ManboShopAPI.Application.Services
 			ILoggerService logger)
 		{
 			_userRepository = userRepository;
+			_cloudinaryService = cloudinaryService;
 			_userManager = userManager;
 			_mapper = mapper;
 			_logger = logger;
 			_roleManager = roleManager;
 			_cartRepository = cartRepository;	
+			_unitOfWork = unitOfWork;
+		}
+
+		public async Task UpdateProfilePictureAsync(int userId, UserUpdateAvatarDto updateAvatarDto)
+		{
+			var cloudinaryFileUrl = "";
+			try
+			{
+
+				await _unitOfWork.BeginTransactionAsync();
+
+				var user = await _userRepository.GetByIdAsync(userId);
+				if (user == null)
+				{
+					_logger.LogError($"Không tìm thấy người dùng với ID {userId}");
+					throw new UserNotFoundException(userId);
+				}
+
+				if (updateAvatarDto.File.Length <= 0 || updateAvatarDto.File == null)
+				{
+					_logger.LogError("File không hợp lệ.");
+					throw new UserBadRequestException("File không hợp lệ.");
+				}
+				if(updateAvatarDto.File != null && updateAvatarDto.IsDelete == false)
+				{
+					string folder = FileConstants.GetFullPath("users", $"USER_{user.Id}/");
+					string imageUrl = await _cloudinaryService.UploadImageAsync(updateAvatarDto.File, folder, $"{FileConstants.FileNames.UserAvatar}_{user.Id}");
+					user.ProfilePictureUrl = imageUrl;
+					cloudinaryFileUrl = imageUrl;
+				}else if(updateAvatarDto.IsDelete == true && user.ProfilePictureUrl != null)
+				{
+					await _cloudinaryService.DeleteImageAsync(user.ProfilePictureUrl);
+					user.ProfilePictureUrl = null;
+				}
+				
+
+				_userRepository.Update(user);
+				await _userRepository.SaveChangesAsync();
+				await _unitOfWork.CommitAsync();
+				_logger.LogInfo("Cập nhật ảnh đại diện thành công.");
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError($"Lỗi khi tải ảnh lên: {ex.Message}");
+				if (!string.IsNullOrEmpty(cloudinaryFileUrl))
+				{
+					await _cloudinaryService.DeleteImageAsync(cloudinaryFileUrl);
+					_logger.LogError("Xóa ảnh trên Cloudinary thành công.");
+				}
+				await _unitOfWork.RollbackAsync();
+				throw;
+			}
 		}
 
 		public async Task<(IEnumerable<UserDto> userDtos, MetaData metaData)> GetUsersAsync(UserRequestParameters userRequestParameters)
@@ -266,5 +328,49 @@ namespace ManboShopAPI.Application.Services
 			_logger.LogInfo($"Thay đổi mật khẩu thành công cho người dùng với Id {userId}");
 		}
 
+
+		public async Task LockUserAsync(int userId, DateTime? endDate)
+		{
+			var user = await _userManager.FindByIdAsync(userId.ToString());
+			if (user == null)
+			{
+				_logger.LogError($"Không tìm thấy người dùng với Id {userId}");
+				throw new UserNotFoundException(userId);
+			}
+
+			// Khóa tài khoản
+			var lockResult = await _userManager.SetLockoutEndDateAsync(user, endDate ?? DateTime.UtcNow.AddYears(100));
+
+			if (!lockResult.Succeeded)
+			{
+				var errors = string.Join(", ", lockResult.Errors.Select(e => e.Description));
+				_logger.LogError($"Khóa tài khoản thất bại: {errors}");
+				throw new UserBadRequestException($"Khóa tài khoản thất bại: {errors}");
+			}
+
+			_logger.LogInfo($"Khóa tài khoản thành công cho người dùng với Id {userId}");
+		}
+
+		public async Task UnlockUserAsync(int userId)
+		{
+			var user = await _userManager.FindByIdAsync(userId.ToString());
+			if (user == null)
+			{
+				_logger.LogError($"Không tìm thấy người dùng với Id {userId}");
+				throw new UserNotFoundException(userId);
+			}
+
+			// Mở khóa tài khoản
+			var unlockResult = await _userManager.SetLockoutEndDateAsync(user, null);
+
+			if (!unlockResult.Succeeded)
+			{
+				var errors = string.Join(", ", unlockResult.Errors.Select(e => e.Description));
+				_logger.LogError($"Mở khóa tài khoản thất bại: {errors}");
+				throw new UserBadRequestException($"Mở khóa tài khoản thất bại: {errors}");
+			}
+
+			_logger.LogInfo($"Mở khóa tài khoản thành công cho người dùng với Id {userId}");
+		}
 	}
 }

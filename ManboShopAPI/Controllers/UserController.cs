@@ -6,6 +6,7 @@ using ManboShopAPI.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
+using System.Security.Claims;
 
 namespace ManboShopAPI.Controllers
 {
@@ -163,6 +164,51 @@ namespace ManboShopAPI.Controllers
 				StatusCode = 200,
 				Success = true,
 				Message = $"Thay đổi mật khẩu thành công cho người dùng với Id {id}."
+			});
+		}
+
+		[HttpPut("update-avatar")]
+		[Authorize]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<IActionResult> UpdateProfilePicture([FromForm] UserUpdateAvatarDto updateAvatarDto)
+		{
+			var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+			await _userService.UpdateProfilePictureAsync(userId, updateAvatarDto);
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = "Cập nhật ảnh đại diện thành công."
+			});
+		}
+
+		[HttpPost("{userId}/lock")]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<IActionResult> LockUser(int userId, [FromBody] LockUserDto lockUserDto)
+		{
+			await _userService.LockUserAsync(userId, lockUserDto.LockoutEnd);
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = $"Khóa người dùng với Id {userId} thành công."
+			});
+		}
+
+		[HttpPost("{userId}/unlock")]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<IActionResult> UnlockUser(int userId)
+		{
+			await _userService.UnLockUserAsync(userId);
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = $"Mở khóa người dùng với Id {userId} thành công."
 			});
 		}
 	}

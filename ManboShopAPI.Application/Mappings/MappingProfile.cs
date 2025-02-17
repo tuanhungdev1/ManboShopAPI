@@ -95,7 +95,11 @@ namespace ManboShopAPI.Application.Mappings
 			//
 
 			//USER
-			CreateMap<User, UserDto>();
+			CreateMap<User, UserDto>()
+				.ForMember(dest => dest.IsLocked,
+			   opt => opt.MapFrom(src => src.LockoutEnd.HasValue && src.LockoutEnd > DateTime.UtcNow))
+				.ForMember(dest => dest.LockoutEnd,
+			   opt => opt.MapFrom(src => src.LockoutEnd));
 			CreateMap<UserForCreateDto, User>()
 				.ForMember(dest => dest.Id, opt => opt.Ignore());
 			CreateMap<UserForUpdateDto, User>()

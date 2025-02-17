@@ -12,7 +12,9 @@
 		public string? PhoneNumber { get; set; }
         public int TotalFavoriteProducts { get; set; }
         public int TotalCartProducts { get; set; }
-        public DateTime CreatedAt { get; set; }
+		public bool IsLocked { get; set; }
+		public DateTime? LockoutEnd { get; set; }
+		public DateTime CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
 		public ICollection<string> Roles { get; set; } = new List<string>();
     }

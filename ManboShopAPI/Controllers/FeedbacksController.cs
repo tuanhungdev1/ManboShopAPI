@@ -26,15 +26,16 @@ namespace ManboShopAPI.Controllers
 		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<IEnumerable<FeedbackDto>>> GetFeedbacks()
+		public async Task<ActionResult<IEnumerable<FeedbackDto>>> GetFeedbacks([FromQuery] FeedbackRequestParameters feedbackRequestParameters)
 		{
-			var feedbacks = await _feedbackService.GetAllFeedbacksAsync();
+			var feedbacks = await _feedbackService.GetAllFeedbacksAsync(feedbackRequestParameters);
 			return Ok(new ApiResponse<object>
 			{
 				StatusCode = 200,
 				Success = true,
 				Message = "Lấy danh sách đánh giá thành công.",
-				Data = feedbacks
+				Data = feedbacks,
+				Pagination = feedbacks.metaData
 			});
 		}
 
@@ -251,7 +252,7 @@ namespace ManboShopAPI.Controllers
 			});
 		}
 
-		// Report endpoints
+		
 		[HttpPost("{id:int}/report")]
 		[Authorize]
 		[ValidationFilter]
