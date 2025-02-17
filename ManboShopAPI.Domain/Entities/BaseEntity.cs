@@ -10,6 +10,8 @@ namespace ManboShopAPI.Domain.Entities
 		public int Id { get; set; }
 		public DateTime CreatedAt { get; set; } = GetVietnamTime();
 		public DateTime? UpdatedAt { get; set; }
+		public bool IsDeleted { get; set; } = false;
+		public DateTime? DeletedAt { get; set; }
 
 		static DateTime GetVietnamTime()
 		{

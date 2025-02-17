@@ -7,6 +7,7 @@ using ManboShopAPI.Application.DTOs.BrandDtos;
 using ManboShopAPI.Application.DTOs.CartDtos;
 using ManboShopAPI.Application.DTOs.CartItemDtos;
 using ManboShopAPI.Application.DTOs.CategoryDtos;
+using ManboShopAPI.Application.DTOs.CouponDtos;
 using ManboShopAPI.Application.DTOs.FavoriteDtos;
 using ManboShopAPI.Application.DTOs.FeedbackDtos;
 using ManboShopAPI.Application.DTOs.NewsDetailDto;
@@ -244,6 +245,15 @@ namespace ManboShopAPI.Application.Mappings
 			// ORDER ADDRESS
 			CreateMap<OrderAddress, OrderAddressDto>();
 			// ORDER ADDRESS
+
+
+			//COUPON
+			CreateMap<Coupon, CouponDto>();
+			CreateMap<CouponForCreateDto, Coupon>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			CreateMap<CouponForUpdateDto, Coupon>()
+				.ForMember(dest => dest.Id, opt => opt.Ignore());
+			//COUPON
 		}
 	}
 }

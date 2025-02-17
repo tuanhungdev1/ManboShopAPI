@@ -1,7 +1,6 @@
 ﻿using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.DTOs.UserDtos;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 
 namespace ManboShopAPI.Application.Contracts
 {

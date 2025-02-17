@@ -3,7 +3,6 @@ using ManboShopAPI.Application.Interfaces;
 using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 {
@@ -13,7 +12,15 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 		{
 		}
 
-		private IQueryable<Order> ApplyOrdering(IQueryable<Order> query, string orderBy, string orderKey)
+		public async Task SoftDeleteAsync(Order order)
+		{
+			order.IsDeleted = true;
+			order.DeletedAt = DateTime.UtcNow;
+			_context.Orders.Update(order);
+			await _context.SaveChangesAsync();
+		}
+
+		private IQueryable<Order> ApplyOrdering(IQueryable<Order> query, string orderBy)
 		{
 			switch (orderBy.ToLower())
 			{
@@ -60,7 +67,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 			if (!string.IsNullOrWhiteSpace(orderRequestParameters.OrderBy))
 			{
-				query = ApplyOrdering(query, orderRequestParameters.OrderBy, orderRequestParameters.OrderBy);
+				query = ApplyOrdering(query, orderRequestParameters.OrderBy);
 			}
 
 			if (orderRequestParameters.OrderStatus.HasValue)
@@ -82,7 +89,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 			if (!string.IsNullOrWhiteSpace(orderRequestParameters.OrderBy))
 			{
-				query = ApplyOrdering(query, orderRequestParameters.OrderBy, orderRequestParameters.OrderBy);
+				query = ApplyOrdering(query, orderRequestParameters.OrderBy);
 			}
 
 			var totalCount = await query.CountAsync();
@@ -117,7 +124,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 
 			if (!string.IsNullOrWhiteSpace(orderForUserRequestParameters.OrderBy))
 			{
-				query = ApplyOrdering(query, orderForUserRequestParameters.OrderBy, orderForUserRequestParameters.OrderBy);
+				query = ApplyOrdering(query, orderForUserRequestParameters.OrderBy);
 			}
 
 			return await query.ToListAsync();

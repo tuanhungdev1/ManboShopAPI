@@ -30,6 +30,109 @@ public class OrderService : IOrderService
 		_logger = logger;
 	}
 
+	public async Task SoftDeleteOrderAsync(int orderId)
+	{
+		var order = await _unitOfWork.OrderRepository.GetByIdAsync(orderId);
+		if (order == null)
+			throw new OrderNotFoundException(orderId);
+
+		// Kiểm tra các điều kiện business logic trước khi xóa
+		if (order.Status != OrderStatus.Cancelled && order.Status != OrderStatus.Delivered)
+			throw new OrderBadRequestException("Chỉ có thể xóa đơn hàng đã hủy hoặc đã giao hàng");
+
+		await _unitOfWork.OrderRepository.SoftDeleteAsync(order);
+		await _unitOfWork.SaveChangesAsync();
+
+		_logger.LogInfo($"Xóa đơn hàng {orderId} thành công");
+	}
+
+	public async Task<OrderDto> UpdateShippingStatusAsync(int orderId, OrderStatus status, string? note)
+	{
+		try
+		{
+			await _unitOfWork.BeginTransactionAsync();
+
+			var order = await _unitOfWork.OrderRepository.GetByIdAsync(orderId);
+
+			if(order == null)
+				throw new OrderNotFoundException($"Không tìm thấy đơn hàng {orderId}");
+
+			order.Status = status;
+
+			switch(status)
+			{
+				case OrderStatus.Confirmed:
+					order.ConfirmedAt = DateTime.UtcNow;
+					break;
+				case OrderStatus.Processing:
+					order.ProcessedAt = DateTime.UtcNow;
+					break;
+				case OrderStatus.Shipped:
+					order.ShippedAt = DateTime.UtcNow;
+					break;
+				case OrderStatus.Delivered:
+					order.DeliveredAt = DateTime.UtcNow;
+					break;
+			}
+
+			if (!string.IsNullOrEmpty(note))
+			{
+				order.Note = string.IsNullOrEmpty(order.Note)
+					? note
+					: $"{order.Note} | {note}";
+			}
+
+			_unitOfWork.OrderRepository.Update(order);
+			await _unitOfWork.SaveChangesAsync();
+			await _unitOfWork.CommitAsync();
+
+			_logger.LogInfo($"Cập nhật trạng thái vận chuyển đơn hàng {orderId} thành công");
+			return _mapper.Map<OrderDto>(order);
+		}
+		catch (Exception ex)
+		{
+			await _unitOfWork.RollbackAsync();
+			_logger.LogError($"Cập nhật trạng thái vận chuyển đơn hàng {orderId} thất bại");
+			throw;
+		}
+	}
+
+	public async Task<OrderDto> UpdatePaymentStatusAsync(int orderId, PaymentStatus status, string? note)
+	{
+		try
+		{
+			await _unitOfWork.BeginTransactionAsync();
+
+			var order = await _unitOfWork.OrderRepository.GetOrderByIdWithDetailsAsync(orderId);
+
+			if(order == null)
+				throw new OrderNotFoundException($"Không tìm thấy đơn hàng {orderId}");
+
+			order.PaymentStatus = status;
+
+			if (!string.IsNullOrEmpty(note))
+			{
+				order.Note = string.IsNullOrEmpty(order.Note)
+					? note
+					: $"{order.Note} | {note}";
+			}
+
+			_unitOfWork.OrderRepository.Update(order);
+			await _unitOfWork.SaveChangesAsync();
+			await _unitOfWork.CommitAsync();
+
+			_logger.LogInfo($"Cập nhật trạng thái thanh toán đơn hàng {orderId} thành công");
+			return _mapper.Map<OrderDto>(order);
+		}
+		catch (Exception ex)
+		{
+			await _unitOfWork.RollbackAsync();
+			_logger.LogError($"Cập nhật trạng thái thanh toán đơn hàng {orderId} thất bại");
+			throw;
+		}
+
+	}
+
 	public async Task<OrderDto> GetOrderByIdAsync(int orderId)
 	{
 		var order = await _unitOfWork.OrderRepository.GetOrderByIdWithDetailsAsync(orderId, true);

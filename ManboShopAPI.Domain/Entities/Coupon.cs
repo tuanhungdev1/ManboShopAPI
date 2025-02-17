@@ -1,5 +1,6 @@
 ﻿using ManboShopAPI.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ManboShopAPI.Domain.Entities
 {
@@ -9,16 +10,24 @@ namespace ManboShopAPI.Domain.Entities
 		[MaxLength(50)]
         public required string Code { get; set; }
 		[Required]
-		public DateTime ExpirationDate { get; set; }
-		[Range(0, int.MaxValue)]
+		[MaxLength(500)]
+        public string Description { get; set; }
+        [Required]
+        public DiscountType DiscountType { get; set; }
 		[Required]
-		public int MaxUsages { get; set; } = 100;
-		[Range(0, int.MaxValue)]
+		[Column(TypeName = "decimal(18,2)")]
+        public decimal DiscountValue { get; set; }
 		[Required]
-		public int CurrentUsages { get; set; } = 0;
-		public CouponStatus Status { get; set; } = CouponStatus.Active;
-        public ICollection<CouponCondition> CouponConditions { get; set; } = new List<CouponCondition>();
-		public ICollection<Order> Orders { get; set; } = new List<Order>();
-        public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+        public DateTime StartDate { get; set; }
+		[Required]
+		public DateTime EndDate { get; set; }
+        public int? MaxUsage { get; set; }
+		public int UsageCount { get; set; } = 0;
+		[Column(TypeName = "decimal(18,2)")]
+        public decimal? MinimumAmount { get; set; }
+		[Column(TypeName = "decimal(18,2)")]
+		public decimal? MaximumDiscountAmount { get; set; }
+		public bool IsActive { get; set; } = true;
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

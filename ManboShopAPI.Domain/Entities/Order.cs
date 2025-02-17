@@ -25,11 +25,15 @@ namespace ManboShopAPI.Domain.Entities
 
 		[Column(TypeName = "decimal(18,2)")]
 		[Required]
-		public decimal ShippingFee { get; set; }  // Phí vận chuyển
+		public decimal ShippingFee { get; set; }
 
 		[Column(TypeName = "decimal(18,2)")]
 		[Required]
-		public decimal Total { get; set; }  // Tổng cộng
+		public decimal Total { get; set; }
+		[Column(TypeName = "decimal(18,2)")]
+		public decimal? DiscountAmount { get; set; }
+		public int? CouponId { get; set; }  
+		public Coupon? Coupon { get; set; } 
 
 		public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
@@ -38,5 +42,5 @@ namespace ManboShopAPI.Domain.Entities
 		public DateTime? ShippedAt { get; set; }
 		public DateTime? DeliveredAt { get; set; }
 		public DateTime? CancelledAt { get; set; }
-	}
+    }
 }

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using ManboShopAPI.Application.Contracts;
-using ManboShopAPI.Application.DTOs.AddressDtos;
 using ManboShopAPI.Application.DTOs.CartDtos;
 using ManboShopAPI.Application.DTOs.CartItemDtos;
 using ManboShopAPI.Application.DTOs.OrderDtos;

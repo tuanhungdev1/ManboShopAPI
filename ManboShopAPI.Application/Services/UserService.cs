@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using CloudinaryDotNet.Actions;
 using ManboShopAPI.Application.Common.Constants;
 using ManboShopAPI.Application.Common.Request;
 using ManboShopAPI.Application.Contracts;
@@ -9,11 +8,9 @@ using ManboShopAPI.Application.UnitOfWork;
 using ManboShopAPI.Domain.Entities;
 using ManboShopAPI.Domain.Exceptions.BadRequest;
 using ManboShopAPI.Domain.Exceptions.NotFound;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ManboShopAPI.Application.Services
 {

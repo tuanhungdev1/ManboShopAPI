@@ -1,5 +1,6 @@
 ﻿using ManboShopAPI.Application.Services;
 using ManboShopAPI.Domain.Entities;
+using ManboShopAPI.Infrastructure.Extensions;
 using ManboShopAPI.Infrastructure.Persistence.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -36,7 +37,6 @@ namespace ManboShopAPI.Infrastructure.Persistence
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
-        public DbSet<CouponCondition> CouponConditions { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Attributes> Attributes { get; set; }
@@ -53,6 +53,12 @@ namespace ManboShopAPI.Infrastructure.Persistence
 		{
 			base.OnModelCreating(modelBuilder);
 
+			// Áp dụng global configurations
+			modelBuilder.ApplyGlobalConfigurations();
+			// Các configuration khác
+			modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+
 			modelBuilder.ApplyConfiguration(new RoleConfiguration());
 
 			modelBuilder.ApplyConfiguration(new ProductConfiguration());
@@ -67,7 +73,7 @@ namespace ManboShopAPI.Infrastructure.Persistence
 
 			modelBuilder.ApplyConfiguration(new BannerDetailConfiguration());
 
-			modelBuilder.ApplyConfiguration(new CouponConditionConfiguration());
+			modelBuilder.ApplyConfiguration(new CouponConfiguration());
 
 			modelBuilder.ApplyConfiguration(new FavoriteConfiguration());
 

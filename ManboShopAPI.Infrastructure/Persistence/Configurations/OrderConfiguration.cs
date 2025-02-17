@@ -21,6 +21,15 @@ namespace ManboShopAPI.Infrastructure.Persistence.Configurations
 				.HasForeignKey<OrderAddress>(sa => sa.OrderId)
 				.IsRequired(true)
 				.OnDelete(DeleteBehavior.Cascade);
+
+
+			builder.HasOne(o => o.Coupon)
+				.WithMany(c => c.Orders)
+				.HasForeignKey(o => o.CouponId)
+				.IsRequired(false)
+				.OnDelete(DeleteBehavior.SetNull);
+
+			builder.HasQueryFilter(o => !o.IsDeleted);
 		}
 	}
 }

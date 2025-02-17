@@ -1,5 +1,4 @@
 ﻿using ManboShopAPI.Domain.Enums;
-using Microsoft.IdentityModel.Tokens;
 
 namespace ManboShopAPI.Application.Common.Request
 {

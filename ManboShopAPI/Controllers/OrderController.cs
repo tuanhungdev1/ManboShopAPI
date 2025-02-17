@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 using System.Security.Claims;
-using System.Text.Json;
 
 [ApiController]
 [Authorize]
@@ -178,9 +177,9 @@ public class OrderController : ControllerBase
 	[HttpPut("{orderId:int}/status")]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
-	public async Task<ActionResult<OrderDto>> UpdateOrderStatus(int orderId, [FromBody] OrderStatus status)
+	public async Task<ActionResult<OrderDto>> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto updateOrderStatus)
 	{
-		var order = await _orderService.UpdateOrderStatusAsync(orderId, status);
+		var order = await _orderService.UpdateShippingStatusAsync(orderId, updateOrderStatus.OrderStatus, updateOrderStatus.Note);
 		return Ok(new ApiResponse<object>
 		{
 			StatusCode = 200,
@@ -214,6 +213,37 @@ public class OrderController : ControllerBase
 	public async Task<IActionResult> DeleteOrder(int orderId)
 	{
 		await _orderService.DeleteOrderAsync(orderId);
+		return Ok(new ApiResponse<object>
+		{
+			StatusCode = 200,
+			Success = true,
+			Message = $"Xóa đơn hàng {orderId} thành công."
+		});
+	}
+
+
+	[HttpPost("{orderId}/payment-status")]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public async Task<ActionResult<OrderDto>> UpdatePaymentStatus(int orderId, [FromBody] UpdateOrderPaymentDto updateOrderPayment)
+	{
+		var order = await _orderService.UpdatePaymentStatusAsync(orderId, updateOrderPayment.PaymentStatus, updateOrderPayment.Note);
+		return Ok(new ApiResponse<object>
+		{
+			StatusCode = 200,
+			Success = true,
+			Message = $"Cập nhật trạng thái đơn hàng {orderId} thành công.",
+			Data = order
+		});
+	}
+
+	[HttpDelete("{orderId:int}/soft-delete")]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest)]
+	public async Task<IActionResult> SoftDeleteOrder(int orderId)
+	{
+		await _orderService.SoftDeleteOrderAsync(orderId);
 		return Ok(new ApiResponse<object>
 		{
 			StatusCode = 200,

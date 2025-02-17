@@ -25,6 +25,7 @@ namespace ManboShopAPI.Application.UnitOfWork
 		public IFeedbackRepository FeedbackRepository { get; }
 		public IFeedbackLikeRepository FeedbackLikeRepository { get; }
 		public IFeedbackReportRepository FeedbackReportRepository { get; }
+		public ICouponRepository CouponRepository { get; }
         Task BeginTransactionAsync();
 		Task CommitAsync();
 		Task RollbackAsync();

@@ -1,7 +1,4 @@
-﻿using ManboShopAPI.Application.Services;
-using ManboShopAPI.Domain.Entities;
-
-namespace ManboShopAPI.Application.DTOs.VariantDtos
+﻿namespace ManboShopAPI.Application.DTOs.VariantDtos
 {
 	public class VariantValueImageDto
 	{

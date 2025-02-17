@@ -1,9 +1,4 @@
-﻿
-
-using ManboShopAPI.Domain.Entities;
-using System.ComponentModel.DataAnnotations;
-
-namespace ManboShopAPI.Application.DTOs.AddressDtos
+﻿namespace ManboShopAPI.Application.DTOs.AddressDtos
 {
 	public class OrderAddressDto
 	{

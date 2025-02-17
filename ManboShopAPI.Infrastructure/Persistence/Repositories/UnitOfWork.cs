@@ -34,6 +34,10 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         private readonly Lazy<IFeedbackRepository> _feedbackRepository;
         private readonly Lazy<IFeedbackLikeRepository> _feedbackLikeRepository;
         private readonly Lazy<IFeedbackReportRepository> _feedbackReportRepository;
+        private readonly Lazy<ICouponRepository> _couponRepository;
+
+
+
 		public UnitOfWork(ApplicationDbContext context,
                           UserManager<User> userManager
         )
@@ -59,6 +63,7 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
             _feedbackRepository = new Lazy<IFeedbackRepository>(() => new FeedbackRepository(_context));
             _feedbackLikeRepository = new Lazy<IFeedbackLikeRepository>(() => new FeedbackLikeRepository(_context));
             _feedbackReportRepository = new Lazy<IFeedbackReportRepository>(() => new FeedbackReportRepository(_context));
+            _couponRepository = new Lazy<ICouponRepository>(() => new CouponRepository(_context));
         }
 
         public IBrandRepository BrandRepository => _brandRepository.Value;
@@ -74,7 +79,6 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         public IOrderRepository OrderRepository => _orderRepository.Value;
         public IAttributeRepository AttributeRepository => _attributeRepository.Value;
         public IProductAttributeValueRepository ProductAttributeValueRepository => _productAttributeValueRepository.Value;
-
         public IProductVariantValueRepository ProductVariantValueRepository => _productVariantValueRepository.Value;
         public IFavoriteRepository FavoriteRepository => _favoriteRepository.Value;
         public IBannerDetailRepository BannerDetailRepository => _bannerDetailRepository.Value;
@@ -82,6 +86,9 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
         public IFeedbackRepository FeedbackRepository => _feedbackRepository.Value;
         public IFeedbackLikeRepository FeedbackLikeRepository => _feedbackLikeRepository.Value;
         public IFeedbackReportRepository FeedbackReportRepository => _feedbackReportRepository.Value;
+        public ICouponRepository CouponRepository => _couponRepository.Value;
+
+
         public async Task BeginTransactionAsync()
         {
             if (_transaction != null)

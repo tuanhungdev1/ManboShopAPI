@@ -7,6 +7,7 @@ namespace ManboShopAPI.Application.Interfaces
 {
 	public interface IOrderRepository : IRepositoryBase<Order>
 	{
+		Task SoftDeleteAsync(Order order);
 		Task<Order?> GetOrderByIdWithDetailsAsync(int orderId, bool asNoTracking = false);
 		Task<bool> OrderExistsAsync(int orderId);
 		Task<decimal> GetTotalOrderAmountByUserIdAsync(int userId);
