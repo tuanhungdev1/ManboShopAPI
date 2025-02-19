@@ -8,17 +8,19 @@ namespace ManboShopAPI.Application.Services
 	{
 		private const string CartSessionKey = "CartSessionId";
 		private readonly IConfiguration _configuration;
-		
 
 		public SessionService(IConfiguration configuration)
 		{
 			_configuration = configuration;
-			
 		}
 
 		public string GetSessionId(HttpContext context)
 		{
 			context.Request.Cookies.TryGetValue(CartSessionKey, out var sessionId);
+			if (string.IsNullOrEmpty(sessionId))
+			{
+				return null;
+			}
 			return sessionId;
 		}
 
@@ -29,16 +31,31 @@ namespace ManboShopAPI.Application.Services
 			{
 				HttpOnly = true,
 				Secure = true,
-				SameSite = SameSiteMode.None,
-				Expires = DateTime.UtcNow.AddDays(30)
+				SameSite = SameSiteMode.Lax, // Thay đổi từ None sang Lax
+				Expires = DateTime.UtcNow.AddDays(30),
+				Path = "/"  // Thêm path
 			};
+
+			// Xóa cookie cũ nếu có
+			context.Response.Cookies.Delete(CartSessionKey);
+
+			// Thêm cookie mới
 			context.Response.Cookies.Append(CartSessionKey, sessionId, cookieOptions);
+
 			return sessionId;
 		}
 
 		public void ClearSessionId(HttpContext context)
 		{
-			context.Response.Cookies.Delete(CartSessionKey);
+			var cookieOptions = new CookieOptions
+			{
+				HttpOnly = true,
+				Secure = true,
+				SameSite = SameSiteMode.Lax,
+				Expires = DateTime.UtcNow.AddDays(-1),
+				Path = "/"
+			};
+			context.Response.Cookies.Delete(CartSessionKey, cookieOptions);
 		}
 	}
 }

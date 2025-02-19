@@ -348,7 +348,7 @@ namespace ManboShopAPI.Application.Services
 			_logger.LogInfo($"Khóa tài khoản thành công cho người dùng với Id {userId}");
 		}
 
-		public async Task UnlockUserAsync(int userId)
+		public async Task UnLockUserAsync(int userId)
 		{
 			var user = await _userManager.FindByIdAsync(userId.ToString());
 			if (user == null)

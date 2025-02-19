@@ -33,7 +33,7 @@ namespace ManboShopAPI.Controllers
 			if (User.Identity.IsAuthenticated)
 			{
 				var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-				var cart = await _cartService.GetCartByUserIdAsync(userId);
+				var cart = await _cartService.GetOrCreateCartByUserAsync(userId);
 				return Ok(new ApiResponse<object>
 				{
 					StatusCode = 200,
@@ -42,34 +42,21 @@ namespace ManboShopAPI.Controllers
 					Data = cart
 				});
 			}
-			else
+
+			var sessionId = _sessionService.GetSessionId(HttpContext);
+			if (string.IsNullOrEmpty(sessionId))
 			{
-				// Try to get existing session ID or create a new one if not exists
-				var sessionId = HttpContext.Request.Cookies["CartSessionId"];
-				if (string.IsNullOrEmpty(sessionId))
-				{
-					// If no session ID exists, create a new one
-					sessionId = await _sessionService.CreateNewSessionId(HttpContext);
-
-					// Create a new cart for this session
-					var newCart = new CartForCreateDto
-					{
-						SessionId = sessionId
-					};
-					await _cartService.CreateCartAsync(newCart);
-				}
-
-				// Retrieve cart by session ID
-				var cart = await _cartService.GetCartBySessionIdAsync(sessionId);
-
-				return Ok(new ApiResponse<object>
-				{
-					StatusCode = 200,
-					Success = true,
-					Message = "Lấy thông tin giỏ hàng thành công.",
-					Data = cart
-				});
+				sessionId = await _sessionService.CreateNewSessionId(HttpContext);
 			}
+
+			var sessionCart = await _cartService.GetOrCreateCartBySessionAsync(sessionId);
+			return Ok(new ApiResponse<object>
+			{
+				StatusCode = 200,
+				Success = true,
+				Message = "Lấy thông tin giỏ hàng thành công.",
+				Data = sessionCart
+			});
 		}
 
 		[HttpGet("session/{sessionId}")]

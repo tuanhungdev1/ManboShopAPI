@@ -48,12 +48,38 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				Console.WriteLine("📌 Query after search filter: " + query.ToQueryString());
 			}
 
-			// Categories filter
 			if (productRequestParameters.Categories?.Any() == true)
 			{
 				Console.WriteLine("📌 Filtering by categories: " + string.Join(", ", productRequestParameters.Categories));
-				query = query.Where(p => p.Category != null &&
-					productRequestParameters.Categories.Contains(p.Category.Name));
+
+				// Lấy tất cả category IDs cần thiết (bao gồm cả parent và child)
+				var categoryIds = new HashSet<int>();
+
+				var categories = await _context.Categories
+					.Include(c => c.SubCategories)
+					.Where(c => productRequestParameters.Categories.Contains(c.Name))
+					.ToListAsync();
+
+				foreach (var category in categories)
+				{
+					// Thêm ID của category được chọn
+					categoryIds.Add(category.Id);
+
+					// Nếu là parent category (không có ParentCategoryId), thêm tất cả ID của subcategories
+					if (!category.ParentCategoryId.HasValue)
+					{
+						var subCategoryIds = category.SubCategories.Select(sc => sc.Id);
+						foreach (var subId in subCategoryIds)
+						{
+							categoryIds.Add(subId);
+						}
+					}
+				}
+
+				Console.WriteLine("📌 Category IDs to filter: " + string.Join(", ", categoryIds));
+
+				// Áp dụng filter với danh sách ID đã có
+				query = query.Where(p => p.Category != null && categoryIds.Contains(p.Category.Id));
 
 				Console.WriteLine("📌 Query after category filter: " + query.ToQueryString());
 			}
@@ -99,23 +125,53 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				Console.WriteLine("📌 Query after sorting: " + query.ToQueryString());
 			}
 
-			// Filtering by Sizes & Colors
 			if (productRequestParameters.Sizes?.Any() == true || productRequestParameters.Colors?.Any() == true)
 			{
 				Console.WriteLine("📌 Filtering by Sizes or Colors...");
 
-				var variantValues = await _context.VariantValues
-					.Where(vv => (vv.Variant.Name == "Size" && productRequestParameters.Sizes.Contains(vv.Value)) ||
-								 (vv.Variant.Name == "Màu" && productRequestParameters.Colors.Contains(vv.Value)))
+				// Get Size IDs
+				var sizeVariantIds = await _context.VariantValues
+					.Where(vv => productRequestParameters.Sizes != null &&
+								 productRequestParameters.Sizes.Contains(vv.Value.Trim()))
 					.Select(vv => vv.Id)
 					.ToListAsync();
 
-				Console.WriteLine("📌 Variant IDs retrieved: " + string.Join(", ", variantValues));
+				// Get Color IDs 
+				var colorVariantIds = await _context.VariantValues
+					.Where(vv => productRequestParameters.Colors != null &&
+								 productRequestParameters.Colors.Contains(vv.Value.Trim()))
+					.Select(vv => vv.Id)
+					.ToListAsync();
 
-				query = query.Where(p => p.ProductVariantValues.Any(pvv =>
-					 variantValues.Any(id => pvv.Sku.Contains(id.ToString()))));
+				Console.WriteLine("📌 Size Variant IDs: " + string.Join(", ", sizeVariantIds));
+				Console.WriteLine("📌 Color Variant IDs: " + string.Join(", ", colorVariantIds));
 
-				Console.WriteLine("📌 Query after filtering by Sizes & Colors: " + query.ToQueryString());
+				if (sizeVariantIds.Any() && colorVariantIds.Any())
+				{
+					// Filter products that have both matching size AND color
+					query = query.Where(p => p.ProductVariantValues.Any(pvv =>
+						colorVariantIds.Any(colorId =>
+							sizeVariantIds.Any(sizeId =>
+								pvv.Sku.Contains($"{colorId}-{sizeId}") ||
+								pvv.Sku.Contains($"{sizeId}-{colorId}")
+							)
+						)
+					));
+				}
+				else if (sizeVariantIds.Any())
+				{
+					// Filter products with matching sizes only
+					query = query.Where(p => p.ProductVariantValues.Any(pvv =>
+						sizeVariantIds.Any(sizeId => pvv.Sku.Contains(sizeId.ToString()))));
+				}
+				else if (colorVariantIds.Any())
+				{
+					// Filter products with matching colors only
+					query = query.Where(p => p.ProductVariantValues.Any(pvv =>
+						colorVariantIds.Any(colorId => pvv.Sku.Contains(colorId.ToString()))));
+				}
+
+				Console.WriteLine("📌 Query after filtering: " + query.ToQueryString());
 			}
 
 			var totalCount = await query.CountAsync();

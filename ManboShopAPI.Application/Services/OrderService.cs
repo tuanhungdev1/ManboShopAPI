@@ -29,7 +29,7 @@ public class OrderService : IOrderService
 		_mapper = mapper;
 		_logger = logger;
 	}
-
+	
 	public async Task SoftDeleteOrderAsync(int orderId)
 	{
 		var order = await _unitOfWork.OrderRepository.GetByIdAsync(orderId);

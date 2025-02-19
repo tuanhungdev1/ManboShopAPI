@@ -7,6 +7,7 @@ namespace ManboShopAPI.Application.Contracts
 	public interface ICartService
 	{
 		// Các phương thức quản lý Cart cơ bản
+		Task<bool> EnsureCartExists(string sessionId);
 		Task<bool> DoesCartExistAsync(string sessionId);
 		Task<CartDto> GetCartBySessionIdAsync(string sessionId);
 		Task<CartDto> GetCartByUserIdAsync(int userId);

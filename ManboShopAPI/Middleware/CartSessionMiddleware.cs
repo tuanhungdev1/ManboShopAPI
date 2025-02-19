@@ -14,49 +14,28 @@ namespace ManboShopAPI.Middleware
 		public async Task InvokeAsync(HttpContext context, ICartService cartService, ISessionService sessionService)
 		{
 			var existingSessionId = sessionService.GetSessionId(context);
-			var isAuthenticated = context.User.Identity.IsAuthenticated;
 
-			if (isAuthenticated)
+			// Nếu user đăng nhập và có session cart, merge vào user cart
+			if (context.User.Identity.IsAuthenticated && !string.IsNullOrEmpty(existingSessionId))
 			{
-				if (!string.IsNullOrEmpty(existingSessionId))
+				try
 				{
-					// Merge giỏ hàng session vào user cart
 					var userId = int.Parse(context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 					await cartService.MergeSessionCartToUserCart(existingSessionId, userId);
 					sessionService.ClearSessionId(context);
 				}
+				catch (Exception)
+				{
+					// Log error nhưng không throw exception để không ảnh hưởng flow chính
+				}
 			}
-			//else
-			//{
-			//	// Kiểm tra nếu chưa có SessionId, tạo mới cho user ẩn danh ngay khi họ vào hệ thống
-			//	if (string.IsNullOrEmpty(existingSessionId))
-			//	{
-			//		string sessionId = await sessionService.CreateNewSessionId(context);
-
-			//		// 🔥 Kiểm tra xem giỏ hàng với SessionId đã tồn tại chưa
-			//		var cartExists = await cartService.DoesCartExistAsync(sessionId);
-			//		if (!cartExists)
-			//		{
-			//			var cart = new CartForCreateDto
-			//			{
-			//				SessionId = sessionId,
-			//			};
-
-			//			await cartService.CreateCartAsync(cart);
-			//		}
-			//	}
-			//}
+			// Nếu chưa đăng nhập và chưa có session, tạo mới session
+			else if (!context.User.Identity.IsAuthenticated && string.IsNullOrEmpty(existingSessionId))
+			{
+				await sessionService.CreateNewSessionId(context);
+			}
 
 			await _next(context);
-		}
-
-	}
-
-	public static class CartSessionMiddlewareExtensions
-	{
-		public static IApplicationBuilder UseCartSession(this IApplicationBuilder builder)
-		{
-			return builder.UseMiddleware<CartSessionMiddleware>();
 		}
 	}
 }

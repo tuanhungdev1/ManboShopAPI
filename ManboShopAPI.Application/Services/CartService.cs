@@ -31,6 +31,27 @@ public class CartService : ICartService
 		_emailSender = emailSender;
 	}
 
+	public async Task<bool> EnsureCartExists(string sessionId)
+	{
+		if (string.IsNullOrEmpty(sessionId)) return false;
+
+		var cart = await _unitOfWork.CartRepository
+			.FindByCondition(c => c.SessionId == sessionId).FirstOrDefaultAsync();
+
+		if (cart == null)
+		{
+			cart = new Cart
+			{
+				SessionId = sessionId,
+				CreatedAt = DateTime.UtcNow
+			};
+			await _unitOfWork.CartRepository.AddAsync(cart);
+			await _unitOfWork.SaveChangesAsync();
+		}
+
+		return true;
+	}
+
 	public async Task<CartDto> GetCartBySessionIdAsync(string sessionId)
 	{
 		var cart = await _unitOfWork.CartRepository.GetCartBySessionIdAsync(sessionId, true);
@@ -54,13 +75,14 @@ public class CartService : ICartService
 
 		if (cart == null)
 		{
-			var newCart = new Cart
+			_logger.LogInfo($"Creating new cart for user {userId}");
+			cart = new Cart
 			{
-				UserId = userId
+				UserId = userId,
+				CreatedAt = DateTime.UtcNow
 			};
-			await _unitOfWork.CartRepository.AddAsync(newCart);
+			await _unitOfWork.CartRepository.AddAsync(cart);
 			await _unitOfWork.SaveChangesAsync();
-			cart = newCart;
 		}
 
 		return _mapper.Map<CartDto>(cart);
@@ -71,15 +93,14 @@ public class CartService : ICartService
 
 		if (cart == null)
 		{
-			var newCart = new Cart
+			_logger.LogInfo($"Creating new cart for session {sessionId}");
+			cart = new Cart
 			{
-				SessionId = sessionId
+				SessionId = sessionId,
+				CreatedAt = DateTime.UtcNow
 			};
-			await _unitOfWork.CartRepository.AddAsync(newCart);
+			await _unitOfWork.CartRepository.AddAsync(cart);
 			await _unitOfWork.SaveChangesAsync();
-
-			_logger.LogInfo($"Tạo giỏ hàng mới với SessionId {sessionId}");
-			cart = newCart;
 		}
 
 		return _mapper.Map<CartDto>(cart);
@@ -293,22 +314,41 @@ public class CartService : ICartService
 		{
 			await _unitOfWork.BeginTransactionAsync();
 
-			var sessionCart = await _unitOfWork.CartRepository.GetCartBySessionIdAsync(sessionId, true);
-			if (sessionCart == null)
-				throw new CartNotFoundException($"Không tìm thấy giỏ hàng session {sessionId}");
+			var sessionCart = await _unitOfWork.CartRepository
+				.GetCartBySessionIdAsync(sessionId, true);
 
-			var userCart = await _unitOfWork.CartRepository.GetCartByUserIdAsync(userId, true);
-			if (userCart == null)
+			if (sessionCart == null || !sessionCart.CartItems.Any())
 			{
-				sessionCart.UserId = userId;
-				sessionCart.SessionId = null;
-				_unitOfWork.CartRepository.Update(sessionCart);
-			}
-			else
-			{
-				await _unitOfWork.CartRepository.MergeCartsAsync(sessionCart.Id, userCart.Id);
+				return;
 			}
 
+			var userCart = await GetOrCreateCartByUserAsync(userId);
+
+			foreach (var item in sessionCart.CartItems)
+			{
+				var existingItem = userCart.CartItems
+					.FirstOrDefault(ci => ci.ProductVariantValueId == item.ProductVariantValueId);
+
+				if (existingItem != null)
+				{
+					existingItem.Quantity += item.Quantity;
+				}
+				else
+				{
+					var newItem = new CartItem
+					{
+						CartId = userCart.Id,
+						ProductVariantValueId = item.ProductVariantValueId,
+						Quantity = item.Quantity
+					};
+					await _unitOfWork.CartItemRepository.AddAsync(newItem);
+				}
+			}
+
+			// Xóa session cart sau khi merge
+			await DeleteCartAsync(sessionCart.Id);
+
+			await _unitOfWork.SaveChangesAsync();
 			await _unitOfWork.CommitAsync();
 		}
 		catch (Exception)

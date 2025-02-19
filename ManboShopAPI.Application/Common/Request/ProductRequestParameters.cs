@@ -28,11 +28,28 @@ namespace ManboShopAPI.Application.Common.Request
 			{
 				throw new ArgumentNullException(nameof(bindingContext));
 			}
-
+			// Lấy giá trị từ query string
 			var request = bindingContext.HttpContext.Request;
 			var parameters = new ProductRequestParameters();
+            Console.WriteLine($"Query: {request.Query}");
+            if (request.Query.TryGetValue("SearchTerm", out var searchTerm))
+			{
+				parameters.SearchTerm = searchTerm.ToString();
+			}
 
-			// Lấy giá trị từ query string
+			if (request.Query.TryGetValue("PageNumber", out var pageNumber))
+			{
+				parameters.PageNumber = int.Parse(pageNumber);
+			}
+			if(request.Query.TryGetValue("OrderBy", out var orderBy))
+			{
+				parameters.OrderBy = orderBy.ToString();
+			}
+
+			if (request.Query.TryGetValue("PageSize", out var pageSize))
+			{
+				parameters.PageSize = int.Parse(pageSize);
+			}
 			if (request.Query.TryGetValue("Categories", out var categories))
 			{
 				parameters.Categories = categories.ToString().Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();

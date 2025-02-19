@@ -55,8 +55,6 @@ namespace ManboShopAPI.Infrastructure.Persistence
 
 			// Áp dụng global configurations
 			modelBuilder.ApplyGlobalConfigurations();
-			// Các configuration khác
-			modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
 
 			modelBuilder.ApplyConfiguration(new RoleConfiguration());

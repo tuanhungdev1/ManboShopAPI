@@ -24,18 +24,6 @@ namespace ManboShopAPI.Infrastructure.Persistence.Repositories
 				case "oldest":
 					query = query.OrderBy(o => o.CreatedAt);
 					break;
-				case "lowest-price":
-					query = query.OrderBy(o => o.Total);
-					break;
-				case "highest-price":
-					query = query.OrderByDescending(o => o.Total);
-					break;
-				case "most-items":
-					query = query.OrderByDescending(o => o.OrderDetails.Count);
-					break;
-				case "fewest-items":
-					query = query.OrderBy(o => o.OrderDetails.Count);
-					break;
 				default:
 					query = query.OrderBy(o => o.Id);
 					break;
